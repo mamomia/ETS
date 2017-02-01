@@ -218,7 +218,6 @@ public class LoginActivity extends CustomButtonBaseActivity {
                     String arrayStr2 = jsonObject.getString("area");
                     JSONObject object4 = new JSONObject(arrayStr2);
 
-                    new GlobalSharedPrefs(LoginActivity.this);
                     GlobalSharedPrefs.ETSPrefs.edit().putString(Constants.EMP_ID_KEY, object3.getString("id")).apply();
                     GlobalSharedPrefs.ETSPrefs.edit().putString(Constants.EMP_NAME_KEY, object3.getString("emp_name")).apply();
                     GlobalSharedPrefs.ETSPrefs.edit().putString(Constants.EMP_EMAIL_KEY, email).apply();

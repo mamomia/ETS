@@ -4,7 +4,7 @@ package com.umt.ameer.ets.appdata;
  * Created by Ameer on 3/12/2016.
  */
 public final class Constants {
-    private static String BASE_URL = "http://192.168.2.119:80/zimbra/index.php/webservice/";
+    private static String BASE_URL = "http://192.168.1.12:80/zimbra/index.php/webservice/";
     //    private static String BASE_URL = "http://192.168.8.101/ETS/index.php/webservice/";
     public static String LOGIN_URL = BASE_URL + "login";
     public static String GET_ALL_ORDERS_URL = BASE_URL + "get_all_orders";

@@ -167,6 +167,7 @@ public class BackgroundLocationService extends Service implements
 
         //check if user is outside radius
         double mRadiusRange = Double.parseDouble(GlobalSharedPrefs.ETSPrefs.getString(Constants.EMP_RADIUS_KEY, "0"));
+        mRadiusRange = mRadiusRange * 1609.344;
         String temp = GlobalSharedPrefs.ETSPrefs.getString(Constants.EMP_RADIUS_CENTER_KEY, "0,0");
         String[] centerRad = temp.split(",");
         LatLng latLngCenter = new LatLng(Double.parseDouble(centerRad[0]), Double.parseDouble(centerRad[1]));

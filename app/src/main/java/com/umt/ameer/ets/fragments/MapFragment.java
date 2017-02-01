@@ -75,6 +75,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback,
         mUserId = GlobalSharedPrefs.ETSPrefs.getString(Constants.EMP_ID_KEY, "0");
         mUserFullName = GlobalSharedPrefs.ETSPrefs.getString(Constants.EMP_NAME_KEY, "Unavailable");
         mRadiusRange = Double.parseDouble(GlobalSharedPrefs.ETSPrefs.getString(Constants.EMP_RADIUS_KEY, "0"));
+        mRadiusRange = mRadiusRange * 1609.344;
         String temp = GlobalSharedPrefs.ETSPrefs.getString(Constants.EMP_RADIUS_CENTER_KEY, "0,0");
         String[] centerRad = temp.split(",");
         mRadiusCenterLat = Double.parseDouble(centerRad[0]);

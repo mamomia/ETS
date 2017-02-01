@@ -84,7 +84,7 @@ public class ProfileFragment extends Fragment {
         TextView tvJoinDate = (TextView) view.findViewById(R.id.profile_join_date);
 
         MaterialSpinner mSpinnerStatus = (MaterialSpinner) view.findViewById(R.id.spinnerStatus);
-        List<String> list = new ArrayList<String>();
+        List<String> list = new ArrayList<>();
         list.add("On Duty");
         list.add("Off Duty");
         list.add("Break");
@@ -122,6 +122,8 @@ public class ProfileFragment extends Fragment {
             mSpinnerStatus.setSelection(1);
         else if (status.equalsIgnoreCase(list.get(2)))
             mSpinnerStatus.setSelection(2);
+
+        Log.e(TAG, "STATUS IS : " + status);
 
         tvName.setText(WordUtils.capitalize(GlobalSharedPrefs.ETSPrefs.getString(Constants.EMP_NAME_KEY, defaultString)));
         tvEmail.setText(GlobalSharedPrefs.ETSPrefs.getString(Constants.EMP_EMAIL_KEY, defaultString));
