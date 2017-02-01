@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:layout_gravity="top"
+    android:background="@color/colorPrimary"
+    android:paddingTop="0dip"
+    android:stretchColumns="1">
+
+    <TableRow>
+
+        <ImageView
+            android:id="@+id/imageCompany"
+            android:layout_width="50dip"
+            android:layout_height="50dip"
+            android:layout_marginLeft="10dip"
+            android:layout_marginStart="10dip" />
+
+        <TableLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top"
+            android:paddingTop="5dip"
+            android:stretchColumns="1">
+
+            <TableRow>
+
+                <TextView
+                    android:id="@+id/textCompanyName"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="start|center_vertical"
+                    android:layout_marginLeft="10dip"
+                    android:layout_marginStart="10dip"
+                    android:layout_weight="1"
+                    android:textColor="@color/white"
+                    android:textSize="17sp"
+                    android:textStyle="bold" />
+            </TableRow>
+        </TableLayout>
+
+        <ImageView
+            android:id="@+id/arrowExpand"
+            android:layout_width="25dip"
+            android:layout_height="25dip"
+            android:layout_gravity="start|center_vertical"
+            android:background="@drawable/detail_arrow_down"
+            android:scaleType="fitCenter" />
+
+    </TableRow>
+</TableLayout>

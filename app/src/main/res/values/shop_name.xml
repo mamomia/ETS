@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="shop_name">
+        <item name="Bhola Pan Shop">Bhola</item>
+        <item name="Bombay Pan Shop">Bombay</item>
+    </string-array>
+</resources>
