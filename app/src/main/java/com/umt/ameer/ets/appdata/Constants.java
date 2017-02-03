@@ -6,16 +6,10 @@ package com.umt.ameer.ets.appdata;
 public final class Constants {
     private static String BASE_URL = "http://192.168.1.12:80/zimbra/index.php/webservice/";
     //    private static String BASE_URL = "http://192.168.8.101/ETS/index.php/webservice/";
-    public static String LOGIN_URL = BASE_URL + "login";
-    public static String GET_ALL_ORDERS_URL = BASE_URL + "get_all_orders";
     public static String GET_ORDERED_FORM_URL = BASE_URL + "get_ordered_form";
     public static String GET_PRODUCT_DETAIL_URL = BASE_URL + "get_product_detail";
     public static String GET_COMPANY_NAME_URL = BASE_URL + "get_company_name";
     public static String GET_PRODUCT_NAME_URL = BASE_URL + "get_product_name";
-    public static String GET_STATUS_URL = BASE_URL + "change_status";
-    public static String GET_ALL_PRODUCTS_URL = BASE_URL + "get_all_products";
-    public static String SEND_BATTERY_NOTIFICATION_URL = BASE_URL + "get_send_notifications";
-    public static String SEND_LOCATION_UPDATE_URL = BASE_URL + "get_send_location_update";
     public static String GET_UPDATE_PICTURE_URL = BASE_URL + "get_send_location_update";
 
     // Milliseconds per second
@@ -45,6 +39,7 @@ public final class Constants {
     public static final String EMP_RADIUS_KEY = "user_radius";
     public static final String EMP_RADIUS_CENTER_KEY = "user_radius_center";
     public static final String EMP_DP_KEY = "user_dp";
+    public static final String KEY_INITIAL_LAUNCH = "first_launch";
 
     /**
      * Suppress default constructor for noninstantiability

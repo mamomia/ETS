@@ -27,11 +27,9 @@ import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.umt.ameer.ets.appdata.Constants;
 import com.umt.ameer.ets.appdata.GlobalSharedPrefs;
-import com.umt.ameer.ets.extras.RequestMethod;
-import com.umt.ameer.ets.extras.RestClient;
-
-import org.json.JSONException;
-import org.json.JSONObject;
+import com.umt.ameer.ets.networkmodels.SimpleResponse;
+import com.umt.ameer.ets.rest.ApiClient;
+import com.umt.ameer.ets.rest.ApiInterface;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -40,6 +38,10 @@ import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 /**
  * Created by Mushi on 1/28/2017.
@@ -313,25 +315,21 @@ public class BackgroundLocationService extends Service implements
     private class LocationTask extends AsyncTask<String, String, String> {
         @Override
         protected String doInBackground(final String... params) {
-            RestClient client = new RestClient(Constants.SEND_LOCATION_UPDATE_URL);
-            client.AddParam("emp_id", params[0]);
-            client.AddParam("emp_lat", params[1]);
-            client.AddParam("emp_lng", params[2]);
-            try {
-                client.Execute(RequestMethod.GET);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            String result = client.getResponse();
-            Log.d("result", result);
-            try {
-                JSONObject jsonObject = new JSONObject(result);
-                final String status = jsonObject.getString("status");
-                Log.d("LocationTask", "result" + status);
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
 
+            final ApiInterface apiService = ApiClient.getClient().create(ApiInterface.class);
+            Call<SimpleResponse> infoCall = apiService.updateLocationRequest(params[0], params[1], params[2]);
+            infoCall.enqueue(new Callback<SimpleResponse>() {
+                @Override
+                public void onResponse(Call<SimpleResponse> call, Response<SimpleResponse> response) {
+                    Log.e("LocationTask", response.body().getMessage());
+                }
+
+                @Override
+                public void onFailure(Call<SimpleResponse> call, Throwable t) {
+                    // Log error here since request failed
+                    Log.e("LocationTask", t.toString());
+                }
+            });
             return null;
         }
     }

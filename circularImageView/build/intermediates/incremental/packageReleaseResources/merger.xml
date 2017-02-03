@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<merger version="3"><dataSet config="main$Generated" generated="true"><source path="F:\Testing Lab\ETS\circularImageView\src\main\res"/><source path="F:\Testing Lab\ETS\circularImageView\build\generated\res\rs\release"/><source path="F:\Testing Lab\ETS\circularImageView\build\generated\res\resValues\release"/></dataSet><dataSet config="release$Generated" generated="true"><source path="F:\Testing Lab\ETS\circularImageView\src\release\res"/></dataSet><dataSet config="main" generated-set="main$Generated"><source path="F:\Testing Lab\ETS\circularImageView\src\main\res"><file path="F:\Testing Lab\ETS\circularImageView\src\main\res\values\attrs.xml" qualifiers=""><declare-styleable name="CircularImageView">
-        <attr format="boolean" name="border"/>
-        <attr format="dimension" name="border_width"/>
-        <attr format="color" name="border_color"/>
-        <attr format="boolean" name="shadow"/>
-    </declare-styleable><declare-styleable name="Theme">
-        <attr format="reference" name="circularImageViewStyle"/>
-    </declare-styleable></file></source><source path="F:\Testing Lab\ETS\circularImageView\build\generated\res\rs\release"/><source path="F:\Testing Lab\ETS\circularImageView\build\generated\res\resValues\release"/></dataSet><dataSet config="release" generated-set="release$Generated"><source path="F:\Testing Lab\ETS\circularImageView\src\release\res"/></dataSet><mergedItems><configuration qualifiers=""><declare-styleable name="Theme"><attr format="reference" name="circularImageViewStyle"/></declare-styleable><declare-styleable name="CircularImageView"><attr format="boolean" name="border"/><attr format="dimension" name="border_width"/><attr format="color" name="border_color"/><attr format="boolean" name="shadow"/></declare-styleable></configuration></mergedItems></merger>

@@ -50,7 +50,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback,
 
     Circle myCircle;
 
-    private String mUserId, mUserFullName;
+    private String mUserFullName;
     private double mRadiusRange, mRadiusCenterLat, mRadiusCenterLng;
 
     public MapFragment() {
@@ -72,7 +72,6 @@ public class MapFragment extends Fragment implements OnMapReadyCallback,
     public void onViewCreated(View rootView, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(rootView, savedInstanceState);
 
-        mUserId = GlobalSharedPrefs.ETSPrefs.getString(Constants.EMP_ID_KEY, "0");
         mUserFullName = GlobalSharedPrefs.ETSPrefs.getString(Constants.EMP_NAME_KEY, "Unavailable");
         mRadiusRange = Double.parseDouble(GlobalSharedPrefs.ETSPrefs.getString(Constants.EMP_RADIUS_KEY, "0"));
         mRadiusRange = mRadiusRange * 1609.344;
@@ -100,7 +99,6 @@ public class MapFragment extends Fragment implements OnMapReadyCallback,
         //Place current location marker
         latLng = new LatLng(location.getLatitude(), location.getLongitude());
         LatLng latLngCenter = new LatLng(mRadiusCenterLat, mRadiusCenterLng);
-//        LatLng latLng = new LatLng(37.7750, 122.4183);
 
         MarkerOptions markerOptions = new MarkerOptions();
         markerOptions.position(latLng);

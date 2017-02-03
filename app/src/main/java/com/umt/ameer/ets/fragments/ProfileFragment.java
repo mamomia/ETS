@@ -32,6 +32,9 @@ import com.umt.ameer.ets.appdata.SessionManager;
 import com.umt.ameer.ets.extras.CircularImageViewSingle;
 import com.umt.ameer.ets.extras.RequestMethod;
 import com.umt.ameer.ets.extras.RestClient;
+import com.umt.ameer.ets.networkmodels.SimpleResponse;
+import com.umt.ameer.ets.rest.ApiClient;
+import com.umt.ameer.ets.rest.ApiInterface;
 
 import org.apache.commons.lang3.text.WordUtils;
 import org.json.JSONException;
@@ -44,6 +47,9 @@ import java.util.List;
 
 import cn.pedant.SweetAlert.SweetAlertDialog;
 import fr.ganfra.materialspinner.MaterialSpinner;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 /**
  * Created by Ameer on 10/9/2016.
@@ -87,7 +93,7 @@ public class ProfileFragment extends Fragment {
         List<String> list = new ArrayList<>();
         list.add("On Duty");
         list.add("Off Duty");
-        list.add("Break");
+        list.add("On Break");
         ArrayAdapter<String> dataAdapter = new ArrayAdapter<String>(getContext(), android.R.layout.simple_spinner_item, list);
         dataAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         mSpinnerStatus.setAdapter(dataAdapter);
@@ -97,10 +103,10 @@ public class ProfileFragment extends Fragment {
                 String item = parent.getItemAtPosition(position).toString();
                 switch (position) {
                     case 0:
-                        new StatusService().execute(mUserId, item, "");
+                        new StatusService().execute(mUserId, item, "none");
                         break;
                     case 1:
-                        new StatusService().execute(mUserId, item, "");
+                        new StatusService().execute(mUserId, item, "none");
                         break;
                     case 2:
                         BreakStatusDialog();
@@ -191,7 +197,7 @@ public class ProfileFragment extends Fragment {
         byte[] byteArrayImage = baos.toByteArray();
         String encodedImageString = Base64.encodeToString(byteArrayImage, Base64.DEFAULT);
         imgProfilePic.setImageBitmap(bm);
-        new UpdateProfilePictureService().execute(mUserId, encodedImageString);
+        //new UpdateProfilePictureService().execute(mUserId, encodedImageString);
     }
 
     private void beginCrop(Uri source) {
@@ -231,7 +237,6 @@ public class ProfileFragment extends Fragment {
     }
 
     private class StatusService extends AsyncTask<String, Void, String> {
-
         private ProgressDialog progressBar;
 
         @Override
@@ -239,52 +244,43 @@ public class ProfileFragment extends Fragment {
             super.onPreExecute();
             progressBar = new ProgressDialog(getContext());
             progressBar.setMessage("Updating status, Please wait...");
-            progressBar.setProgressStyle(ProgressDialog.STYLE_SPINNER);
             progressBar.setIndeterminate(true);
             progressBar.setCancelable(false);
             progressBar.show();
         }
 
         @Override
-        protected String doInBackground(String... params) {
-            RestClient client = new RestClient(Constants.GET_STATUS_URL);
-            client.AddParam("emp_id", params[0]);
-            client.AddParam("status", params[1]);
-            client.AddParam("break_content", params[2]);
-
-            try {
-                client.Execute(RequestMethod.GET);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            String result = client.getResponse();
-            Log.d("result", result);
-            try {
-                JSONObject jsonObject = new JSONObject(result);
-                final String status = jsonObject.getString("status");
-                Log.d("result", status);
-                progressBar.dismiss();
-                if (status.equalsIgnoreCase("success")) {
+        protected String doInBackground(final String... params) {
+            final ApiInterface apiService = ApiClient.getClient().create(ApiInterface.class);
+            Call<SimpleResponse> infoCall = apiService.changeStatusRequest(params[0], params[1], params[2]);
+            infoCall.enqueue(new Callback<SimpleResponse>() {
+                @Override
+                public void onResponse(Call<SimpleResponse> call, Response<SimpleResponse> response) {
                     getActivity().runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
                             Toast.makeText(getContext(), "Status Updated Successfully", Toast.LENGTH_LONG).show();
-                            GlobalSharedPrefs.ETSPrefs.edit().putString(Constants.EMP_STATUS_KEY, status).apply();
+                            GlobalSharedPrefs.ETSPrefs.edit().putString(Constants.EMP_STATUS_KEY, params[1]).apply();
+                            GlobalSharedPrefs.ETSPrefs.edit().putString(Constants.EMP_STATUS_BREAK_CONTENT_KEY,
+                                    params[2]).apply();
                         }
                     });
+                    progressBar.dismiss();
+                }
 
-                } else {
+                @Override
+                public void onFailure(Call<SimpleResponse> call, Throwable t) {
+                    // Log error here since request failed
+                    Log.e(TAG, t.toString());
+                    progressBar.dismiss();
                     getActivity().runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            Toast.makeText(getContext(), "Something went wrong, Please try again", Toast.LENGTH_LONG).show();
+                            Toast.makeText(getContext(), "Unable to connect, Please try again", Toast.LENGTH_LONG).show();
                         }
                     });
                 }
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-
+            });
             return null;
         }
     }

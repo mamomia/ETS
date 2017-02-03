@@ -11,17 +11,18 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.umt.ameer.ets.R;
-import com.umt.ameer.ets.appdata.Constants;
-import com.umt.ameer.ets.extras.RequestMethod;
-import com.umt.ameer.ets.extras.RestClient;
 import com.umt.ameer.ets.models.ChildDetailModel;
 import com.umt.ameer.ets.models.ParentDetailModel;
+import com.umt.ameer.ets.networkmodels.ProductsResponse;
+import com.umt.ameer.ets.rest.ApiClient;
+import com.umt.ameer.ets.rest.ApiInterface;
 import com.umt.ameer.ets.utils.ExpandableListFragment;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
-
 import java.util.ArrayList;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class DetailFragment extends ExpandableListFragment {
 
@@ -39,12 +40,6 @@ public class DetailFragment extends ExpandableListFragment {
         super.onViewCreated(view, savedInstanceState);
         new ProductDetailsTask().execute();
     }
-
-//    @Override
-//    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-//        // Inflate the layout for this fragment
-//        return inflater.inflate(R.layout.fragment_detail, container, false);
-//    }
 
     private void loadHosts(final ArrayList<ParentDetailModel> newParents) {
         if (newParents == null)
@@ -180,53 +175,42 @@ public class DetailFragment extends ExpandableListFragment {
         }
     }
 
-    //Company details
     private class ProductDetailsTask extends AsyncTask<String, String, String> {
-
         @Override
         protected String doInBackground(final String... params) {
-            RestClient client = new RestClient(Constants.GET_ALL_PRODUCTS_URL);
-            try {
-                client.Execute(RequestMethod.GET);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            String result = client.getResponse();
-            try {
-                JSONObject jsonObject = new JSONObject(result);
-                String status = jsonObject.getString("status");
-                if (status.equalsIgnoreCase("success")) {
 
-                    ArrayList<ParentDetailModel> mCompanies = new ArrayList<>();
-                    JSONArray jsonArrayCompany = jsonObject.optJSONArray("product_info");
-
-                    for (int i = 0; i < jsonArrayCompany.length(); i++) {
-                        ArrayList<ChildDetailModel> mChildsList = new ArrayList<>();
-                        ParentDetailModel mParent = new ParentDetailModel();
-
-                        JSONObject productObj = jsonArrayCompany.getJSONObject(i);
-
-                        JSONArray jsonArrayProducts = productObj.optJSONArray("products");
-                        String mCompanyTitle = productObj.getString("company_title");
-
-                        mParent.setName(mCompanyTitle);
-                        for (int j = 0; j < jsonArrayProducts.length(); j++) {
-                            JSONObject productInfoObj = jsonArrayProducts.getJSONObject(j);
-
-                            ChildDetailModel mChild = new ChildDetailModel();
-                            mChild.setName(productInfoObj.getString("product_name"));
-                            mChild.setPrice(productInfoObj.getString("product_price"));
-                            mChild.setSize(productInfoObj.getString("product_size"));
-                            mChildsList.add(mChild);
+            final ApiInterface apiService = ApiClient.getClient().create(ApiInterface.class);
+            Call<ProductsResponse> infoCall = apiService.getProductsRequest();
+            infoCall.enqueue(new Callback<ProductsResponse>() {
+                @Override
+                public void onResponse(Call<ProductsResponse> call, Response<ProductsResponse> response) {
+                    if (response.body().getStatus().equalsIgnoreCase("success")) {
+                        ArrayList<ParentDetailModel> mCompanies = new ArrayList<>();
+                        for (int i = 0; i < response.body().getCompaniesCount(); i++) {
+                            ArrayList<ChildDetailModel> mChildsList = new ArrayList<>();
+                            ParentDetailModel mParent = new ParentDetailModel();
+                            String mCompanyTitle = response.body().getProductInfo().get(i).getCompanyTitle();
+                            mParent.setName(mCompanyTitle);
+                            for (int j = 0; j < response.body().getProductInfo().get(i).getProducts().size(); j++) {
+                                ProductsResponse.Product product = response.body().getProductInfo().get(i).getProducts().get(j);
+                                ChildDetailModel mChild = new ChildDetailModel();
+                                mChild.setName(product.getProductName());
+                                mChild.setPrice(product.getProductPrice());
+                                mChild.setSize(product.getProductSize());
+                                mChildsList.add(mChild);
+                            }
+                            mParent.setChildren(mChildsList);
+                            mCompanies.add(mParent);
                         }
-                        mParent.setChildren(mChildsList);
-                        mCompanies.add(mParent);
+                        loadHosts(mCompanies);
                     }
-                    loadHosts(mCompanies);
                 }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+
+                @Override
+                public void onFailure(Call<ProductsResponse> call, Throwable t) {
+                    // Log error here since request failed
+                }
+            });
             return null;
         }
     }

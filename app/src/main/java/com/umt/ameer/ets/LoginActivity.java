@@ -24,11 +24,13 @@ import com.umt.ameer.ets.appdata.Constants;
 import com.umt.ameer.ets.appdata.GlobalSharedPrefs;
 import com.umt.ameer.ets.appdata.SessionManager;
 import com.umt.ameer.ets.extras.CustomButtonBaseActivity;
-import com.umt.ameer.ets.extras.RequestMethod;
-import com.umt.ameer.ets.extras.RestClient;
+import com.umt.ameer.ets.networkmodels.UserInfoResponse;
+import com.umt.ameer.ets.rest.ApiClient;
+import com.umt.ameer.ets.rest.ApiInterface;
 
-import org.json.JSONException;
-import org.json.JSONObject;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class LoginActivity extends CustomButtonBaseActivity {
 
@@ -184,69 +186,72 @@ public class LoginActivity extends CustomButtonBaseActivity {
             super.onPreExecute();
             progressBar = new ProgressDialog(LoginActivity.this);
             progressBar.setMessage("Signing in, Please wait...");
-            progressBar.setProgressStyle(ProgressDialog.STYLE_SPINNER);
             progressBar.setIndeterminate(true);
             progressBar.setCancelable(false);
             progressBar.show();
         }
 
         @Override
-        protected String doInBackground(String... params) {
+        protected String doInBackground(final String... params) {
 
-            RestClient client = new RestClient(Constants.LOGIN_URL);
-            client.AddParam("email", params[0]);
-            client.AddParam("password", params[1]);
+            final ApiInterface apiService = ApiClient.getClient().create(ApiInterface.class);
+            Call<UserInfoResponse> infoCall = apiService.loginRequest(params[0], params[1]);
+            infoCall.enqueue(new Callback<UserInfoResponse>() {
+                @Override
+                public void onResponse(Call<UserInfoResponse> call, Response<UserInfoResponse> response) {
+                    progressBar.dismiss();
 
-            try {
-                client.Execute(RequestMethod.GET);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+                    if (response.body().getStatus().equalsIgnoreCase("success")) {
 
-            String result = client.getResponse();
-            try {
-                progressBar.dismiss();
-                JSONObject jsonObject = new JSONObject(result);
-                String status = jsonObject.getString("status");
-                Log.d("Login result", status);
-                if (status.equalsIgnoreCase("success")) {
-                    String arrayStr = jsonObject.getString("user_info");
-                    JSONObject object3 = new JSONObject(arrayStr);
+                        GlobalSharedPrefs.ETSPrefs.edit().putString(Constants.EMP_ID_KEY, response.body().getUserInfo().getId()).apply();
+                        GlobalSharedPrefs.ETSPrefs.edit().putString(Constants.EMP_NAME_KEY,
+                                response.body().getUserInfo().getEmpName()).apply();
+                        GlobalSharedPrefs.ETSPrefs.edit().putString(Constants.EMP_EMAIL_KEY,
+                                response.body().getUserInfo().getEmail()).apply();
+                        GlobalSharedPrefs.ETSPrefs.edit().putString(Constants.EMP_PHONE_KEY,
+                                response.body().getUserInfo().getPhoneNo()).apply();
+                        GlobalSharedPrefs.ETSPrefs.edit().putString(Constants.EMP_JOIN_DATE_KEY,
+                                response.body().getUserInfo().getJoinDate()).apply();
+                        GlobalSharedPrefs.ETSPrefs.edit().putString(Constants.EMP_STATUS_KEY,
+                                response.body().getUserInfo().getEmpStatus()).apply();
+                        GlobalSharedPrefs.ETSPrefs.edit().putString(Constants.EMP_DP_KEY,
+                                response.body().getUserInfo().getEmpDp()).apply();
+                        GlobalSharedPrefs.ETSPrefs.edit().putString(Constants.EMP_SUPERIOR_ID_KEY,
+                                response.body().getUserInfo().getEmployeeId()).apply();
+                        GlobalSharedPrefs.ETSPrefs.edit().putString(Constants.EMP_STATUS_BREAK_CONTENT_KEY,
+                                response.body().getUserInfo().getBreakContent()).apply();
+                        GlobalSharedPrefs.ETSPrefs.edit().putString(Constants.EMP_RADIUS_KEY,
+                                response.body().getArea().getRadius()).apply();
+                        GlobalSharedPrefs.ETSPrefs.edit().putString(Constants.EMP_RADIUS_CENTER_KEY,
+                                response.body().getArea().getCenterPoint()).apply();
 
-                    String email = object3.getString("email");
+                        session.createLoginSession(params[0], params[1]);
+                        startActivityForResult(new Intent(LoginActivity.this, DashboardActivity.class), 0);
+                        overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
+                        finish();
+                    } else {
+                        LoginActivity.this.runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                Toast.makeText(LoginActivity.this, "User does not exist", Toast.LENGTH_LONG).show();
+                            }
+                        });
+                    }
+                }
 
-                    String arrayStr2 = jsonObject.getString("area");
-                    JSONObject object4 = new JSONObject(arrayStr2);
-
-                    GlobalSharedPrefs.ETSPrefs.edit().putString(Constants.EMP_ID_KEY, object3.getString("id")).apply();
-                    GlobalSharedPrefs.ETSPrefs.edit().putString(Constants.EMP_NAME_KEY, object3.getString("emp_name")).apply();
-                    GlobalSharedPrefs.ETSPrefs.edit().putString(Constants.EMP_EMAIL_KEY, email).apply();
-                    GlobalSharedPrefs.ETSPrefs.edit().putString(Constants.EMP_PHONE_KEY, object3.getString("phone_no")).apply();
-                    GlobalSharedPrefs.ETSPrefs.edit().putString(Constants.EMP_JOIN_DATE_KEY, object3.getString("join_date")).apply();
-                    GlobalSharedPrefs.ETSPrefs.edit().putString(Constants.EMP_STATUS_KEY, object3.getString("emp_status")).apply();
-
-                    GlobalSharedPrefs.ETSPrefs.edit().putString(Constants.EMP_DP_KEY, object3.getString("emp_dp")).apply();
-                    GlobalSharedPrefs.ETSPrefs.edit().putString(Constants.EMP_SUPERIOR_ID_KEY, object3.getString("employee_id")).apply();
-                    GlobalSharedPrefs.ETSPrefs.edit().putString(Constants.EMP_STATUS_BREAK_CONTENT_KEY, object3.getString("break_content")).apply();
-
-                    GlobalSharedPrefs.ETSPrefs.edit().putString(Constants.EMP_RADIUS_KEY, object4.getString("radius")).apply();
-                    GlobalSharedPrefs.ETSPrefs.edit().putString(Constants.EMP_RADIUS_CENTER_KEY, object4.getString("center_point")).apply();
-
-                    session.createLoginSession(email, params[1]);
-                    startActivityForResult(new Intent(LoginActivity.this, DashboardActivity.class), 0);
-                    overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
-                    finish();
-                } else {
+                @Override
+                public void onFailure(Call<UserInfoResponse> call, Throwable t) {
+                    // Log error here since request failed
+                    Log.e(TAG, t.toString());
+                    progressBar.dismiss();
                     LoginActivity.this.runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            Toast.makeText(LoginActivity.this, "User does not exist", Toast.LENGTH_LONG).show();
+                            Toast.makeText(LoginActivity.this, "Unable to connect, Please try again", Toast.LENGTH_LONG).show();
                         }
                     });
                 }
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
+            });
             return null;
         }
     }

@@ -10,11 +10,13 @@ import android.util.Log;
 
 import com.umt.ameer.ets.appdata.Constants;
 import com.umt.ameer.ets.appdata.GlobalSharedPrefs;
-import com.umt.ameer.ets.extras.RequestMethod;
-import com.umt.ameer.ets.extras.RestClient;
+import com.umt.ameer.ets.networkmodels.SimpleResponse;
+import com.umt.ameer.ets.rest.ApiClient;
+import com.umt.ameer.ets.rest.ApiInterface;
 
-import org.json.JSONException;
-import org.json.JSONObject;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 /**
  * Created by Mushi on 1/27/2017.
@@ -84,27 +86,21 @@ public class BatteryStateChangedReceiver extends BroadcastReceiver {
     private class NotificationTask extends AsyncTask<String, String, String> {
         @Override
         protected String doInBackground(final String... params) {
-            RestClient client = new RestClient(Constants.SEND_BATTERY_NOTIFICATION_URL);
-            client.AddParam("emp_id", params[0]);
-            client.AddParam("content", params[1]);
-            client.AddParam("type", "employee");
 
-            try {
-                client.Execute(RequestMethod.GET);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            String result = client.getResponse();
-            Log.d("result", result);
-            try {
-                JSONObject jsonObject = new JSONObject(result);
+            final ApiInterface apiService = ApiClient.getClient().create(ApiInterface.class);
+            Call<SimpleResponse> infoCall = apiService.sendNotificationRequest(params[0], params[1], "employee");
+            infoCall.enqueue(new Callback<SimpleResponse>() {
+                @Override
+                public void onResponse(Call<SimpleResponse> call, Response<SimpleResponse> response) {
+                    Log.e("LocationTask", response.body().getMessage());
+                }
 
-                final String status = jsonObject.getString("status");
-                Log.d("result", status);
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-
+                @Override
+                public void onFailure(Call<SimpleResponse> call, Throwable t) {
+                    // Log error here since request failed
+                    Log.e("LocationTask", t.toString());
+                }
+            });
             return null;
         }
     }
