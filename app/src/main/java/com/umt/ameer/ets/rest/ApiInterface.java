@@ -39,7 +39,7 @@ public interface ApiInterface {
     Call<OrdersResponse> getOrdersRequest(@Query("emp_id") String emp_id);
 
 
-    @GET("get_send_notifications")
+    @GET("get_all_products")
     Call<ProductsResponse> getProductsRequest();
 
 

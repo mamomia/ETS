@@ -22,6 +22,7 @@ import android.widget.ArrayAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.applidium.shutterbug.utils.ShutterbugManager;
 import com.rengwuxian.materialedittext.MaterialEditText;
 import com.soundcloud.android.crop.Crop;
 import com.umt.ameer.ets.LoginActivity;
@@ -60,7 +61,8 @@ public class ProfileFragment extends Fragment {
     private static final String TAG = "Settings Fragment";
     private static String mUserId = "";
 
-    CircularImageViewSingle imgProfilePic;
+    private CircularImageViewSingle imgProfilePic;
+    private TextView tvCurrentStatus;
 
     public ProfileFragment() {
     }
@@ -77,6 +79,7 @@ public class ProfileFragment extends Fragment {
         mUserId = GlobalSharedPrefs.ETSPrefs.getString(Constants.EMP_ID_KEY, "0");
 
         imgProfilePic = (CircularImageViewSingle) view.findViewById(R.id.profile_image);
+        tvCurrentStatus = (TextView) view.findViewById(R.id.profile_current_status);
         view.findViewById(R.id.btnProfilePicChange).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -130,11 +133,26 @@ public class ProfileFragment extends Fragment {
             mSpinnerStatus.setSelection(2);
 
         Log.e(TAG, "STATUS IS : " + status);
+        tvCurrentStatus.setText("Current status : " + status);
 
         tvName.setText(WordUtils.capitalize(GlobalSharedPrefs.ETSPrefs.getString(Constants.EMP_NAME_KEY, defaultString)));
         tvEmail.setText(GlobalSharedPrefs.ETSPrefs.getString(Constants.EMP_EMAIL_KEY, defaultString));
         tvPhone.setText(GlobalSharedPrefs.ETSPrefs.getString(Constants.EMP_PHONE_KEY, defaultString));
         tvJoinDate.setText(GlobalSharedPrefs.ETSPrefs.getString(Constants.EMP_JOIN_DATE_KEY, defaultString));
+        String url = GlobalSharedPrefs.ETSPrefs.getString(Constants.EMP_DP_KEY, defaultString);
+        ShutterbugManager
+                .getSharedImageManager(getContext())
+                .download(url, new ShutterbugManager.ShutterbugManagerListener() {
+                    @Override
+                    public void onImageSuccess(ShutterbugManager shutterbugManager, Bitmap bitmap, String s) {
+                        imgProfilePic.setImageBitmap(bitmap);
+                    }
+
+                    @Override
+                    public void onImageFailure(ShutterbugManager shutterbugManager, String s) {
+
+                    }
+                });
 
         view.findViewById(R.id.btnProfileLogout).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -260,6 +278,7 @@ public class ProfileFragment extends Fragment {
                         @Override
                         public void run() {
                             Toast.makeText(getContext(), "Status Updated Successfully", Toast.LENGTH_LONG).show();
+                            tvCurrentStatus.setText("Current status : " + params[1]);
                             GlobalSharedPrefs.ETSPrefs.edit().putString(Constants.EMP_STATUS_KEY, params[1]).apply();
                             GlobalSharedPrefs.ETSPrefs.edit().putString(Constants.EMP_STATUS_BREAK_CONTENT_KEY,
                                     params[2]).apply();

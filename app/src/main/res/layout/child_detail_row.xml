@@ -1,63 +1,41 @@
 <?xml version="1.0" encoding="utf-8"?>
-<TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="fill_parent"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_gravity="top"
-    android:background="@color/background"
-    android:paddingTop="0dip"
-    android:stretchColumns="1">
+    android:background="@color/white"
+    android:gravity="left"
+    android:orientation="vertical"
+    android:padding="10dp">
 
-    <TableRow>
+    <TextView
+        android:id="@+id/tvProductNameChild"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="30dp"
+        android:layout_marginStart="30dp"
+        android:focusable="false"
+        android:text="Product Name"
+        android:textSize="18sp"
+        android:textStyle="bold" />
 
-        <ImageView
-            android:id="@+id/image"
-            android:layout_width="30dip"
-            android:layout_height="30dip"
-            android:layout_marginLeft="30dip" />
+    <TextView
+        android:id="@+id/tvProductSizeChild"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="30dp"
+        android:layout_marginStart="30dp"
+        android:focusable="false"
+        android:text="Product Size"
+        android:textSize="15sp" />
 
-        <TableLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="top"
-            android:paddingTop="0dip"
-            android:stretchColumns="1">
+    <TextView
+        android:id="@+id/tvProductPriceChild"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="30dp"
+        android:layout_marginStart="30dp"
+        android:focusable="false"
+        android:text="Product Price"
+        android:textSize="15sp" />
 
-            <TableRow>
-
-                <TextView
-                    android:id="@+id/textProductName"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="start|center_vertical"
-                    android:layout_marginLeft="30dip"
-                    android:layout_weight="1"
-                    android:textSize="15sp"
-                    android:textStyle="bold" />
-            </TableRow>
-
-            <TableRow>
-
-                <TextView
-                    android:id="@+id/textProductSize"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="start|center_vertical"
-                    android:layout_marginLeft="30dip"
-                    android:layout_weight="1"
-                    android:textSize="12sp" />
-            </TableRow>
-
-            <TableRow>
-
-                <TextView
-                    android:id="@+id/textProductPrice"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="start|center_vertical"
-                    android:layout_marginLeft="30dip"
-                    android:layout_weight="1"
-                    android:textSize="12sp" />
-            </TableRow>
-        </TableLayout>
-    </TableRow>
-</TableLayout>
+</LinearLayout>
