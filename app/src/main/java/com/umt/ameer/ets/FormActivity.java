@@ -1,21 +1,17 @@
 package com.umt.ameer.ets;
 
-import android.app.NotificationManager;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.AsyncTask;
+import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.design.widget.Snackbar;
-import android.support.v4.app.NotificationCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.util.TypedValue;
-import android.view.LayoutInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -35,7 +31,6 @@ import com.umt.ameer.ets.appdata.Constants;
 import com.umt.ameer.ets.appdata.GlobalSharedPrefs;
 import com.umt.ameer.ets.extras.RequestMethod;
 import com.umt.ameer.ets.extras.RestClient;
-import com.umt.ameer.ets.fragments.FormFragment;
 import com.umt.ameer.ets.models.CompanyNameModel;
 import com.umt.ameer.ets.models.ProductNameModel;
 
@@ -48,7 +43,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-import cn.pedant.SweetAlert.SweetAlertDialog;
 import fr.ganfra.materialspinner.MaterialSpinner;
 import info.hoang8f.widget.FButton;
 
@@ -88,38 +82,6 @@ public class FormActivity extends AppCompatActivity {
 
         toolbar = (Toolbar) findViewById(R.id.toolbarForm);
         toolbar.inflateMenu(R.menu.menu_dashboard);
-        toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
-            @Override
-            public boolean onMenuItemClick(MenuItem item) {
-                NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(FormActivity.this);
-                mBuilder.setContentTitle("Notification Alert, Click Me!");
-                mBuilder.setContentText("Hi, This is Android Notification Detail!");
-                mBuilder.setSmallIcon(R.drawable.ic_tick);
-
-                NotificationManager manager = (NotificationManager) FormActivity.this.getSystemService(Context.NOTIFICATION_SERVICE);
-                manager.notify(0, mBuilder.build());
-
-                new SweetAlertDialog(FormActivity.this, SweetAlertDialog.SUCCESS_TYPE)
-                        .setTitleText("Submit Order")
-                        .setContentText("Are you sure you want to submit the order?")
-                        .setCancelText("No")
-                        .setConfirmText("Yes, Submit!")
-                        .showCancelButton(true)
-                        .setCancelClickListener(new SweetAlertDialog.OnSweetClickListener() {
-                            @Override
-                            public void onClick(SweetAlertDialog sDialog) {
-                                sDialog.cancel();
-                            }
-                        }).setConfirmClickListener(new SweetAlertDialog.OnSweetClickListener() {
-                    @Override
-                    public void onClick(SweetAlertDialog sweetAlertDialog) {
-                        sweetAlertDialog.cancel();
-                    }
-                }).show();
-                return false;
-            }
-        });
-
 
         tvDate = (TextView) findViewById(R.id.tvDateForm);
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss", Locale.US);

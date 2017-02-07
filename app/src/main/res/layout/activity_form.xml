@@ -13,7 +13,7 @@
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
         android:layout_alignParentTop="true"
-        android:background="#2A2F37"
+        android:background="@color/colorPrimary"
         app:layout_scrollFlags="scroll|enterAlways"
         app:popupTheme="@style/AppTheme.PopupOverlay" />
 
@@ -29,18 +29,16 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:weightSum="1">
+            android:orientation="vertical">
 
             <TextView
                 android:id="@+id/tvDateForm"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_margin="5dp"
                 android:text="21/09/2016"
                 android:textAlignment="center"
                 android:textColor="@color/black"
-                android:textSize="20sp" />
+                android:textSize="18sp" />
 
             <com.rengwuxian.materialedittext.MaterialEditText
                 android:id="@+id/etShopName"
