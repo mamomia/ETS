@@ -1,5 +1,6 @@
 package com.umt.ameer.ets.rest;
 
+import com.umt.ameer.ets.networkmodels.OrderInfoResponse;
 import com.umt.ameer.ets.networkmodels.OrdersResponse;
 import com.umt.ameer.ets.networkmodels.ProductsResponse;
 import com.umt.ameer.ets.networkmodels.SimpleResponse;
@@ -38,6 +39,9 @@ public interface ApiInterface {
     @GET("get_all_orders/{emp_id}")
     Call<OrdersResponse> getOrdersRequest(@Query("emp_id") String emp_id);
 
+    @GET("get_order_info/{emp_id}/{order_id}")
+    Call<OrderInfoResponse> getOrderInfoRequest(@Query("emp_id") String emp_id,
+                                                @Query("order_id") String order_id);
 
     @GET("get_all_products")
     Call<ProductsResponse> getProductsRequest();
