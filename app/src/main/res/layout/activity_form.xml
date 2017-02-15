@@ -2,7 +2,7 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/activity_form"
+    android:id="@+id/parentLayoutFormActivity"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/background"
@@ -20,11 +20,10 @@
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_above="@+id/btnCheckoutForm"
         android:layout_below="@+id/toolbarForm"
-        android:background="@color/background"
-        android:clipToPadding="false"
-        android:fillViewport="false"
-        android:padding="@dimen/activity_vertical_margin">
+        android:padding="@dimen/activity_vertical_margin"
+        android:scrollbarAlwaysDrawVerticalTrack="false">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -33,142 +32,241 @@
 
             <TextView
                 android:id="@+id/tvDateForm"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="21/09/2016"
-                android:textAlignment="center"
-                android:textColor="@color/black"
-                android:textSize="18sp" />
-
-            <com.rengwuxian.materialedittext.MaterialEditText
-                android:id="@+id/etShopName"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_margin="5dp"
-                android:layout_marginBottom="5dp"
-                android:hint="Enter Shop Name"
-                android:inputType="text"
-                android:padding="5dp"
-                android:textColor="@color/black"
-                app:met_floatingLabel="normal" />
-
-            <com.rengwuxian.materialedittext.MaterialEditText
-                android:id="@+id/etShopAddress"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_margin="5dp"
-                android:layout_marginBottom="5dp"
-                android:hint="Enter Shop Address"
-                android:inputType="text"
-                android:padding="5dp"
-                android:textColor="@color/black"
-                app:met_floatingLabel="normal" />
-
-            <!--<Spinner-->
-            <!--android:id="@+id/spinnerCompanyNameForm"-->
-            <!--android:layout_width="match_parent"-->
-            <!--android:layout_height="wrap_content"-->
-            <!--android:layout_margin="5dp"-->
-            <!--android:hint="Select the Company Name" />-->
-
-            <!--<Spinner-->
-            <!--android:id="@+id/spinnerProductNameForm"-->
-            <!--android:layout_width="match_parent"-->
-            <!--android:layout_height="wrap_content"-->
-            <!--android:layout_margin="5dp"-->
-            <!--android:hint="Select the Product Name" />-->
-
-            <fr.ganfra.materialspinner.MaterialSpinner
-                android:id="@+id/spinnerCompanyNameForm"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_margin="5dp"
-                app:met_floatingLabel="normal"
-                app:ms_hint="Select the Company Name" />
-
-            <fr.ganfra.materialspinner.MaterialSpinner
-                android:id="@+id/spinnerProductNameForm"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_margin="5dp"
-                app:met_floatingLabel="normal"
-                app:ms_hint="Select the Product Name" />
-
-
-            <com.rengwuxian.materialedittext.MaterialEditText
-                android:id="@+id/etProductQuantity"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_margin="5dp"
-                android:layout_marginBottom="5dp"
-                android:hint="Enter Quantity"
-                android:inputType="number"
-                android:padding="10dp"
-                android:textColor="@color/black"
-                app:met_floatingLabel="normal" />
-
-            <info.hoang8f.widget.FButton
-                android:id="@+id/btnAddProductItems"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Add To Cart"
-                android:textColor="@color/white"
-                android:textStyle="bold"
-                app:buttonColor="@color/colorPink"
-                app:cornerRadius="20dp"
-                app:shadowHeight="5dp" />
-
-            <LinearLayout
-                android:id="@+id/form_added_product_layout"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:visibility="invisible">
+                android:layout_gravity="center_horizontal"
+                android:layout_margin="5dp"
+                android:text="00/00/0000"
+                android:textColor="@color/black"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Company"
-                    android:textColor="@color/black"
-                    android:textSize="15sp" />
+                    android:layout_marginTop="1dp"
+                    android:text="SHOP DETAIL"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="10dp"
-                    android:layout_marginLeft="10dp"
-                    android:layout_marginRight="10dp"
-                    android:layout_marginStart="10dp"
-                    android:text="Product"
-                    android:textColor="@color/black"
-                    android:textSize="15sp" />
+                <View
+                    android:layout_width="fill_parent"
+                    android:layout_height="2dp"
+                    android:background="#c0c0c0" />
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Quantity"
-                    android:textColor="@color/black"
-                    android:textSize="10sp" />
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginLeft="10dp"
-                    android:text="Total Price"
-                    android:textColor="@color/black"
-                    android:textSize="10sp" />
+                    <EditText
+                        android:id="@+id/etShopNameForm"
+                        android:layout_width="match_parent"
+                        android:layout_height="30dp"
+                        android:layout_alignParentTop="true"
+                        android:background="@android:color/transparent"
+                        android:hint="Enter shop name"
+                        android:inputType="textPersonName"
+                        android:textSize="15sp" />
+                </RelativeLayout>
+
             </LinearLayout>
 
-            <ScrollView
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/activity_vertical_margin"
+                android:orientation="vertical">
 
-                <com.baoyz.swipemenulistview.SwipeMenuListView
-                    android:id="@+id/listViewProductsForm"
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="1dp"
+                    android:text="ORDER DETAIL"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
+
+                <View
+                    android:layout_width="fill_parent"
+                    android:layout_height="2dp"
+                    android:background="#c0c0c0" />
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="end"
+                    android:layout_marginBottom="1dp"
+                    android:layout_marginEnd="5dp"
+                    android:layout_marginRight="5dp"
+                    android:layout_marginTop="5dp"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="RS. "
+                        android:textSize="15sp" />
+
+                    <TextView
+                        android:id="@+id/tvTotalAmountForm"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="@dimen/activity_vertical_margin"
+                        android:layout_marginRight="@dimen/activity_vertical_margin"
+                        android:text="0"
+                        android:textSize="35sp" />
+
+                </LinearLayout>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="1dp"
+                    android:text="SELECT PRODUCTS"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
+
+                <View
+                    android:layout_width="fill_parent"
+                    android:layout_height="2dp"
+                    android:background="#c0c0c0" />
+
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_margin="5dp"
-                    android:minHeight="100dp" />
-            </ScrollView>
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/tvCompanyForm"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_margin="10dp"
+                        android:text="Select Company"
+                        android:textSize="16sp" />
+
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_margin="10dp"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:id="@+id/tvProductForm"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentTop="true"
+                            android:layout_margin="5dp"
+                            android:text="Select Product"
+                            android:textSize="16sp" />
+
+                        <TextView
+                            android:id="@+id/tvSizeProductForm"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentLeft="true"
+                            android:layout_alignParentStart="true"
+                            android:layout_below="@+id/tvProductForm"
+                            android:layout_centerVertical="true"
+                            android:layout_margin="5dp"
+                            android:text="Size: Large"
+                            android:textSize="12sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/tvPriceProductForm"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_below="@+id/tvProductForm"
+                            android:layout_centerVertical="true"
+                            android:layout_margin="5dp"
+                            android:layout_toRightOf="@id/tvSizeProductForm"
+                            android:text="Price : RS. 0"
+                            android:textSize="12sp"
+                            android:textStyle="bold" />
+
+                        <EditText
+                            android:id="@+id/etProductQuanForm"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentEnd="true"
+                            android:layout_alignParentRight="true"
+                            android:layout_below="@+id/tvProductForm"
+                            android:layout_centerVertical="true"
+                            android:layout_gravity="center_vertical|end"
+                            android:layout_marginLeft="@dimen/activity_vertical_margin"
+                            android:layout_marginStart="@dimen/activity_vertical_margin"
+                            android:hint="Enter quantity to add"
+                            android:inputType="number"
+                            android:textAlignment="viewEnd"
+                            android:textSize="12sp" />
+
+                    </RelativeLayout>
+
+                    <LinearLayout
+                        android:id="@+id/layoutAddProductForm"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="end"
+                        android:layout_margin="5dp"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="bottom"
+                            android:layout_marginEnd="5dp"
+                            android:layout_marginRight="5dp"
+                            android:layout_marginTop="1dp"
+                            android:text="ADD THIS PRODUCT TO CART"
+                            android:textSize="12sp"
+                            android:textStyle="bold" />
+
+                        <ImageView
+                            android:layout_width="30dp"
+                            android:layout_height="30dp"
+                            android:layout_gravity="bottom"
+                            android:background="@color/colorPrimary"
+                            android:src="@android:drawable/ic_menu_add" />
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="1dp"
+                android:text="SELECTED PRODUCTS DETAIL"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+
+            <View
+                android:layout_width="fill_parent"
+                android:layout_height="2dp"
+                android:background="#c0c0c0" />
+
+            <ListView
+                android:id="@+id/listViewProductsForm"
+                android:layout_width="match_parent"
+                android:layout_height="150dp" />
+
         </LinearLayout>
     </ScrollView>
+
+    <Button
+        android:id="@+id/btnCheckoutForm"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:background="@color/colorPrimary"
+        android:text="CHECK OUT"
+        android:textColor="@color/white"
+        android:textStyle="bold" />
+
 </RelativeLayout>

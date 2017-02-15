@@ -45,6 +45,12 @@
                 android:text="Shop keeper name"
                 android:textSize="18sp" />
 
+            <View
+                android:layout_width="fill_parent"
+                android:layout_height="2dp"
+                android:layout_marginTop="2dp"
+                android:background="#c0c0c0" />
+
             <TextView
                 android:id="@+id/tvDateShowDetail"
                 android:layout_width="wrap_content"
@@ -131,12 +137,11 @@
                 android:textColor="@color/white"
                 android:textSize="20sp" />
 
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="_________________________"
-                android:textColor="@color/white"
-                android:textSize="10sp" />
+            <View
+                android:layout_width="fill_parent"
+                android:layout_height="2dp"
+                android:layout_marginTop="2dp"
+                android:background="@color/white" />
 
             <TextView
                 android:id="@+id/tvStatusDeliveredShowDetail"
@@ -147,12 +152,11 @@
                 android:textColor="@color/colorPrimaryDark"
                 android:textSize="20sp" />
 
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="_________________________"
-                android:textColor="@color/white"
-                android:textSize="10sp" />
+            <View
+                android:layout_width="fill_parent"
+                android:layout_height="2dp"
+                android:layout_marginTop="2dp"
+                android:background="@color/white" />
 
             <TextView
                 android:id="@+id/tvStatusCanceledShowDetail"
@@ -163,12 +167,11 @@
                 android:textColor="@color/white"
                 android:textSize="20sp" />
 
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="_________________________"
-                android:textColor="@color/white"
-                android:textSize="10sp" />
+            <View
+                android:layout_width="fill_parent"
+                android:layout_height="2dp"
+                android:layout_marginTop="2dp"
+                android:background="@color/white" />
 
         </LinearLayout>
 

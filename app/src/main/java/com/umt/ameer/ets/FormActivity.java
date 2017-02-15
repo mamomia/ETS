@@ -1,40 +1,35 @@
 package com.umt.ameer.ets;
 
+import android.app.Dialog;
+import android.app.ProgressDialog;
 import android.content.Context;
-import android.content.SharedPreferences;
-import android.graphics.Color;
-import android.graphics.drawable.ColorDrawable;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
-import android.util.TypedValue;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.LinearLayout;
+import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.ListView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.baoyz.swipemenulistview.SwipeMenu;
-import com.baoyz.swipemenulistview.SwipeMenuCreator;
-import com.baoyz.swipemenulistview.SwipeMenuItem;
-import com.baoyz.swipemenulistview.SwipeMenuListView;
-import com.rengwuxian.materialedittext.MaterialEditText;
-import com.umt.ameer.ets.adapters.CompanySpinnerAdapter;
-import com.umt.ameer.ets.adapters.ProductSpinnerAdapter;
 import com.umt.ameer.ets.appdata.Constants;
 import com.umt.ameer.ets.appdata.GlobalSharedPrefs;
-import com.umt.ameer.ets.extras.RequestMethod;
-import com.umt.ameer.ets.extras.RestClient;
-import com.umt.ameer.ets.models.CompanyNameModel;
-import com.umt.ameer.ets.models.ProductNameModel;
+import com.umt.ameer.ets.networkmodels.CompanyInfoResponse;
+import com.umt.ameer.ets.networkmodels.ProductsInfoResponse;
+import com.umt.ameer.ets.networkmodels.SimpleResponse;
+import com.umt.ameer.ets.rest.ApiClient;
+import com.umt.ameer.ets.rest.ApiInterface;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.text.SimpleDateFormat;
@@ -43,280 +38,217 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-import fr.ganfra.materialspinner.MaterialSpinner;
-import info.hoang8f.widget.FButton;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class FormActivity extends AppCompatActivity {
 
-    private List<ProductInfo> mProductsList;
-    private ProductAdapter mAdapter;
-    private SwipeMenuListView mListView;
+    private ProductsAdapter mProductsAdapter;
 
-    private List<CompanyNameModel> mCompanySpinnerList;
-    private CompanySpinnerAdapter mCompanyAdapter;
+    private ArrayList<CompanySpinnerModel> mCompaniesSpinnerList;
+    private ArrayList<ProductsInfoResponse.Product> mProductsSpinnerList;
+    private ArrayList<ProductInfo> mProductsList;
 
-    private List<ProductNameModel> mProductsSpinnerList;
-    private ProductSpinnerAdapter mProductsAdapter;
+    private TextView tvTotalPrice, tvProductSize, tvProductPrice, tvCompanies, tvProducts;
+    private EditText etShopName, etProductQuantity;
 
-
-    MaterialEditText etShopName, etQuantity, etShopAddress;
-    TextView tvDate;
-    MaterialSpinner mSpinnerProductName, mSpinnerCompanyName;
-    FButton btnAddProduct;
-    LinearLayout layout;
-
-
-    JSONArray jsonArray = new JSONArray();
-
-    CompanyNameModel tempValues = null;
-    ProductNameModel tempValues1 = null;
-
-    String companyid;
-    private Toolbar toolbar;
-    String productprice;
+    private int mSelectedCompanyIndex = -1, mSelectedProductIndex = -1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_form);
 
-        toolbar = (Toolbar) findViewById(R.id.toolbarForm);
-        toolbar.inflateMenu(R.menu.menu_dashboard);
+        new GlobalSharedPrefs(this);
 
-        tvDate = (TextView) findViewById(R.id.tvDateForm);
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss", Locale.US);
+        //Making Keyboard hide on click outside
+        final RelativeLayout parentContainer = (RelativeLayout) findViewById(R.id.parentLayoutFormActivity);
+        parentContainer.setClickable(true);
+        parentContainer.setFocusable(true);
+        parentContainer.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                parentContainer.requestFocus();
+            }
+        });
+
+        TextView tvDate = (TextView) findViewById(R.id.tvDateForm);
+        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.US);
         String currentDateTime = sdf.format(new Date());
         tvDate.setText(currentDateTime);
 
-        btnAddProduct = (FButton) findViewById(R.id.btnAddProductItems);
-        etQuantity = (MaterialEditText) findViewById(R.id.etProductQuantity);
-        etShopName = (MaterialEditText) findViewById(R.id.etShopName);
-        etShopAddress = (MaterialEditText) findViewById(R.id.etShopAddress);
-        layout = (LinearLayout) findViewById(R.id.form_added_product_layout);
-
-
-        mSpinnerCompanyName = (MaterialSpinner) findViewById(R.id.spinnerCompanyNameForm);
-        mSpinnerProductName = (MaterialSpinner) findViewById(R.id.spinnerProductNameForm);
-        mCompanySpinnerList = new ArrayList<>();
-        mProductsSpinnerList = new ArrayList<>();
-
-        mCompanyAdapter = new CompanySpinnerAdapter(this, R.layout.custom_spinner_items, mCompanySpinnerList);
-        mProductsAdapter = new ProductSpinnerAdapter(this, R.layout.custom_spinner_items, mProductsSpinnerList);
-
-        mSpinnerCompanyName.setAdapter(mCompanyAdapter);
-        mSpinnerProductName.setAdapter(mProductsAdapter);
-
-        mListView = (SwipeMenuListView) findViewById(R.id.listViewProductsForm);
-        mProductsList = new ArrayList<>();
-        mAdapter = new ProductAdapter(FormActivity.this, R.layout.product_list_item, mProductsList);
-        mListView.setAdapter(mAdapter);
-
-        btnAddProduct.setOnClickListener(new View.OnClickListener() {
+        Toolbar mToolbar = (Toolbar) findViewById(R.id.toolbarForm);
+        mToolbar.setTitle(" ADD NEW ORDER");
+        mToolbar.setLogo(R.drawable.ic_back);
+        mToolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                layout.setVisibility(View.VISIBLE);
-                if (!etQuantity.getText().toString().trim().isEmpty()) {
-                    ProductInfo mProductItem = new ProductInfo();
-                    mProductItem.productName = (ProductNameModel) mSpinnerProductName.getSelectedItem();
-                    mProductItem.companyName = (CompanyNameModel) mSpinnerCompanyName.getSelectedItem();
-                    int quan = Integer.parseInt(etQuantity.getText().toString().trim());
-                    int price = Integer.parseInt(productprice.toString());
-                    int multi = quan * price;
-                    String q = String.valueOf(multi);
-                    mProductItem.quantity = etQuantity.getText().toString().trim();
-                    mProductItem.price = q;
-                    mProductsList.add(mProductItem);
-                    FormActivity.this.runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            mAdapter.notifyDataSetChanged();
-                            Toast.makeText(FormActivity.this, "Added to Cart", Toast.LENGTH_LONG).show();
-                        }
-                    });
-                }
+                finish();
             }
         });
 
-        // step 1. create a MenuCreator
-        SwipeMenuCreator creator = new SwipeMenuCreator() {
+        etShopName = (EditText) findViewById(R.id.etShopNameForm);
+        etProductQuantity = (EditText) findViewById(R.id.etProductQuanForm);
+        tvTotalPrice = (TextView) findViewById(R.id.tvTotalAmountForm);
+        tvProductSize = (TextView) findViewById(R.id.tvSizeProductForm);
+        tvProductPrice = (TextView) findViewById(R.id.tvPriceProductForm);
+        tvCompanies = (TextView) findViewById(R.id.tvCompanyForm);
+        tvProducts = (TextView) findViewById(R.id.tvProductForm);
+
+        //initialising data
+        tvTotalPrice.setText("0");
+        tvProductPrice.setText("");
+        tvProductSize.setText("");
+
+        //spinners
+        mCompaniesSpinnerList = new ArrayList<>();
+        mProductsSpinnerList = new ArrayList<>();
+        mProductsList = new ArrayList<>();
+
+        mProductsAdapter = new ProductsAdapter(this, R.layout.product_list_item, mProductsList);
+
+        ListView productsList = (ListView) findViewById(R.id.listViewProductsForm);
+        productsList.setAdapter(mProductsAdapter);
+
+        tvCompanies.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void create(SwipeMenu menu) {
-                // create "delete" item
-                SwipeMenuItem deleteItem = new SwipeMenuItem(
-                        FormActivity.this);
-                // set item background
-                deleteItem.setBackground(new ColorDrawable(Color.rgb(0xF9,
-                        0x3F, 0x25)));
-                // set item width
-                deleteItem.setWidth(dp2px(90));
-                // set a icon
-                deleteItem.setIcon(R.drawable.ic_delete);
-                // add to menu
-                menu.addMenuItem(deleteItem);
-            }
-        };
-        // set creator
-        mListView.setMenuCreator(creator);
-        // step 2. listener item click event
-        mListView.setOnMenuItemClickListener(new SwipeMenuListView.OnMenuItemClickListener() {
-            @Override
-            public boolean onMenuItemClick(int position, SwipeMenu menu, int index) {
-                switch (index) {
-                    case 0:
-                        // delete
-                        layout.setVisibility(View.INVISIBLE);
-                        mProductsList.remove(position);
-                        mAdapter.notifyDataSetChanged();
-                        break;
-                }
-                return false;
-            }
-        });
-        mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Snackbar.make(view, "Swipe left to remove the item", Snackbar.LENGTH_LONG).setAction("Action", null).show();
-            }
-        });
-        new CompanyName().execute();
-    }
+            public void onClick(View view) {
+                // custom dialog
+                final Dialog dialog = new Dialog(FormActivity.this);
+                dialog.setContentView(R.layout.custom_list_dialog);
+                dialog.setTitle("Select Company");
+                dialog.setCanceledOnTouchOutside(true);
 
-    //Company details
-    private class CompanyName extends AsyncTask<String, String, String> {
+                ListView list = (ListView) dialog.findViewById(R.id.mDialogList);
+                CompanyAdapter adapter = new CompanyAdapter(dialog.getContext(), R.layout.custom_spinner_items, mCompaniesSpinnerList);
+                list.setAdapter(adapter);
 
-        @Override
-        protected String doInBackground(final String... params) {
-            RestClient client = new RestClient(Constants.GET_COMPANY_NAME_URL);
-            try {
-                client.Execute(RequestMethod.GET);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            String result = client.getResponse();
-            try {
-                JSONObject jsonObject = new JSONObject(result);
-                String status = jsonObject.getString("status");
-                if (status.equalsIgnoreCase("success")) {
-                    mCompanySpinnerList.clear();
-                    String arrayStr = jsonObject.getString("company_name_info");
-                    Log.d("Company Name", arrayStr);
-                    jsonArray = jsonObject.optJSONArray("company_name_info");
-                    for (int i = 0; i < jsonArray.length(); i++) {
-                        JSONObject object = jsonArray.getJSONObject(i);
-
-                        CompanyNameModel temp1 = new CompanyNameModel();
-                        temp1.companyname = object.getString("company_name");
-                        temp1.companyid = object.getString("id");
-
-                        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(FormActivity.this);
-                        SharedPreferences.Editor editor = preferences.edit();
-                        editor.putString("company_id", temp1.companyid);
-                        Log.d("SharedPref", temp1.companyid);
-                        editor.apply();
-                        mCompanySpinnerList.add(temp1);
+                list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                    @Override
+                    public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                        mSelectedCompanyIndex = i;
+                        CompanySpinnerModel row = mCompaniesSpinnerList.get(i);
+                        tvCompanies.setText(row.name.toUpperCase());
+                        new ProductsInfoTask().execute(row.id);
+                        dialog.dismiss();
                     }
-                    FormActivity.this.runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            mSpinnerCompanyName.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                                @Override
-                                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                                    CompanyNameModel item = (CompanyNameModel) parent.getItemAtPosition(position);
-                                    SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(FormActivity.this);
-                                    companyid = preferences.getString("company_name", item.companyid);
-                                    Log.d("GlobalSharedPrefs", companyid);
-                                    new ProductName().execute(companyid);
-                                }
+                });
 
-                                @Override
-                                public void onNothingSelected(AdapterView<?> parent) {
-
-                                }
-                            });
-                            mCompanyAdapter.notifyDataSetChanged();
-                        }
-                    });
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
+                dialog.show();
             }
-            return null;
-        }
-    }
+        });
 
-    //Product details
-    private class ProductName extends AsyncTask<String, String, String> {
+        tvProducts.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                // custom dialog
+                final Dialog dialog = new Dialog(FormActivity.this);
+                dialog.setContentView(R.layout.custom_list_dialog);
+                dialog.setTitle("Select Product");
+                dialog.setCanceledOnTouchOutside(true);
 
-        @Override
-        protected String doInBackground(String... params) {
-            RestClient client = new RestClient(Constants.GET_PRODUCT_NAME_URL);
-            new GlobalSharedPrefs(FormActivity.this);
-            client.AddParam("id", params[0]);
-            try {
-                client.Execute(RequestMethod.GET);
-            } catch (Exception e) {
-                e.printStackTrace();
+                ListView list = (ListView) dialog.findViewById(R.id.mDialogList);
+                ProductAdapter adapter = new ProductAdapter(dialog.getContext(), R.layout.custom_spinner_items, mProductsSpinnerList);
+                list.setAdapter(adapter);
+
+                list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                    @Override
+                    public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                        mSelectedProductIndex = i;
+                        ProductsInfoResponse.Product row = mProductsSpinnerList.get(i);
+                        tvProducts.setText(row.getProductName().toUpperCase());
+
+                        tvProductSize.setText("Size: " + row.getProductSize());
+                        tvProductPrice.setText("Price: RS. " + row.getProductPrice());
+
+                        dialog.dismiss();
+                    }
+                });
+
+                dialog.show();
             }
-            String result = client.getResponse();
-            try {
-                JSONObject jsonObject = new JSONObject(result);
-                String status = jsonObject.getString("status");
-                if (status.equalsIgnoreCase("success")) {
+        });
+
+        //button click listners
+        findViewById(R.id.layoutAddProductForm).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (validateAddProductForm()) {
+
+                    ProductsInfoResponse.Product item = mProductsSpinnerList.get(mSelectedProductIndex);
+                    ProductInfo temp = new ProductInfo();
+                    temp.id = item.getId();
+                    temp.productName = item.getProductName();
+                    temp.price = item.getProductPrice();
+                    temp.quantity = etProductQuantity.getText().toString().trim();
+                    mProductsList.add(temp);
+                    mProductsAdapter.notifyDataSetChanged();
+
+                    //clear spinner and update price
+                    mSelectedProductIndex = -1;
+                    mSelectedCompanyIndex = -1;
+                    tvCompanies.setText("Select Company");
+                    tvProducts.setText("Select Product");
+                    tvProductPrice.setText("");
+                    tvProductSize.setText("");
+
                     mProductsSpinnerList.clear();
-                    String arrayStr = jsonObject.getString("product_name_info");
-                    Log.d("Product Name", arrayStr);
-                    jsonArray = jsonObject.optJSONArray("product_name_info");
-                    for (int i = 0; i < jsonArray.length(); i++) {
-                        JSONObject object = jsonArray.getJSONObject(i);
-
-                        ProductNameModel temp2 = new ProductNameModel();
-                        temp2.productname = object.getString("product_name");
-                        temp2.productprice = object.getString("product_price");
-
-                        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(FormActivity.this);
-                        SharedPreferences.Editor editor = preferences.edit();
-                        editor.putString("product_name", temp2.productprice);
-                        Log.d("SharedPref", temp2.productprice);
-                        editor.apply();
-                        mProductsSpinnerList.add(temp2);
-                    }
-                    FormActivity.this.runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            mSpinnerProductName.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                                @Override
-                                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                                    ProductNameModel item = (ProductNameModel) parent.getItemAtPosition(position);
-                                    SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(FormActivity.this);
-                                    productprice = preferences.getString("product_price", item.productprice);
-                                    Log.d("GlobalSharedPrefs", productprice);
-//                                    new ProductName().execute(companyid);
-                                }
-
-                                @Override
-                                public void onNothingSelected(AdapterView<?> parent) {
-
-                                }
-                            });
-                            mProductsAdapter.notifyDataSetChanged();
-                        }
-                    });
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
+                    updateTotalPrice();
+                } else
+                    Toast.makeText(FormActivity.this, "Please validate product info before adding it.", Toast.LENGTH_LONG).show();
             }
-            return null;
+        });
+
+        findViewById(R.id.btnCheckoutForm).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (validateOrderForm()) {
+                    String mUserId = GlobalSharedPrefs.ETSPrefs.getString(Constants.EMP_ID_KEY, "0");
+                    new CheckoutOrderTask().execute(mUserId, etShopName.getText().toString(), tvTotalPrice.getText().toString());
+                } else
+                    Toast.makeText(FormActivity.this, "Please validate order info before checkout.", Toast.LENGTH_LONG).show();
+            }
+        });
+
+        //Fetch Initial Data
+        new CompanyInfoTask().execute();
+    }
+
+    private void updateTotalPrice() {
+        tvTotalPrice.setText("0");
+        int total = 0;
+        for (ProductInfo item : mProductsList) {
+            total = total + (Integer.parseInt(item.price) * Integer.parseInt(item.quantity));
         }
+        tvTotalPrice.setText("" + total);
     }
 
-    private int dp2px(int dp) {
-        return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp,
-                getResources().getDisplayMetrics());
+    //validation on form
+    private boolean validateAddProductForm() {
+        if (etProductQuantity.getText().toString().trim().length() == 0)
+            return false;
+        else if (mSelectedCompanyIndex == -1)
+            return false;
+        else if (mSelectedProductIndex == -1)
+            return false;
+
+        return true;
     }
 
-    class ProductAdapter extends ArrayAdapter {
+    private boolean validateOrderForm() {
+        if (etShopName.getText().toString().trim().length() == 0)
+            return false;
+        else if (mProductsList.size() < 1)
+            return false;
 
-        public ProductAdapter(Context context, int resource, List<ProductInfo> items) {
+        return true;
+    }
+
+    //Adapters
+    private class ProductsAdapter extends ArrayAdapter {
+
+        public ProductsAdapter(Context context, int resource, List<ProductInfo> items) {
             super(context, resource, items);
         }
 
@@ -337,46 +269,348 @@ public class FormActivity extends AppCompatActivity {
 
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
-            return getCustomView(position, convertView, parent);
-        }
-
-        private View getCustomView(int position, View convertView, ViewGroup parent) {
             if (convertView == null) {
-                convertView = View.inflate(getContext(),
-                        R.layout.product_list_item, null);
-                new ProductAdapter.ViewHolder(convertView);
+                convertView = View.inflate(getContext(), R.layout.product_list_item, null);
+                new ViewHolder(convertView);
             }
-            ProductAdapter.ViewHolder holder = (ProductAdapter.ViewHolder) convertView.getTag();
+            ViewHolder holder = (ViewHolder) convertView.getTag();
             ProductInfo item = getItem(position);
+            final int index = position;
 
-            holder.product_price.setText(item.price);
-            holder.product_quan.setText(item.quantity);
-            tempValues = item.companyName;
-            tempValues1 = item.productName;
-
-            holder.product_name.setText(tempValues1.productname);
-            holder.company_name.setText(tempValues.companyname);
+            holder.product_name.setText(item.productName.toUpperCase());
+            holder.product_price.setText("RS. " + item.price);
+            holder.product_quan.setText("Quantity: " + item.quantity);
+            holder.btnDelete.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    //remove product from array
+                    mProductsList.remove(index);
+                    notifyDataSetChanged();
+                    updateTotalPrice();
+                }
+            });
             return convertView;
         }
 
-        class ViewHolder {
-            TextView product_name, product_quan, company_name, product_price;
+        private class ViewHolder {
+            TextView product_name, product_quan, product_price;
+            ImageView btnDelete;
 
-            public ViewHolder(View view) {
+            ViewHolder(View view) {
                 product_name = (TextView) view.findViewById(R.id.tvProductNameFormItem);
                 product_quan = (TextView) view.findViewById(R.id.tvProductQuantityFormItem);
-                company_name = (TextView) view.findViewById(R.id.tvCompanyNameFormItem);
                 product_price = (TextView) view.findViewById(R.id.tvProductPriceFormItem);
+                btnDelete = (ImageView) view.findViewById(R.id.ivDeleteProductFormItem);
                 view.setTag(this);
             }
         }
     }
 
-    private class ProductInfo {
-        public int id;
-        public ProductNameModel productName;
+    private class CompanyAdapter extends ArrayAdapter {
+
+        private List<CompanySpinnerModel> data;
+
+        public CompanyAdapter(Context context, int resource, List<CompanySpinnerModel> items) {
+            super(context, resource, items);
+            data = items;
+        }
+
+        @Override
+        public int getCount() {
+            return data.size();
+        }
+
+        @Override
+        public CompanySpinnerModel getItem(int position) {
+            return data.get(position);
+        }
+
+        @Override
+        public long getItemId(int position) {
+            return position;
+        }
+
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+            if (convertView == null) {
+                convertView = View.inflate(getContext(), R.layout.custom_spinner_items, null);
+                new ViewHolder(convertView);
+            }
+            ViewHolder holder = (ViewHolder) convertView.getTag();
+            CompanySpinnerModel item = getItem(position);
+            holder.name.setText(item.name.toUpperCase());
+            return convertView;
+        }
+
+        private class ViewHolder {
+            TextView name;
+
+            ViewHolder(View view) {
+                name = (TextView) view.findViewById(R.id.textViewSpinner);
+                view.setTag(this);
+            }
+        }
+    }
+
+    private class ProductAdapter extends ArrayAdapter {
+
+        private List<ProductsInfoResponse.Product> data;
+
+        public ProductAdapter(Context context, int resource, List<ProductsInfoResponse.Product> items) {
+            super(context, resource, items);
+            data = items;
+        }
+
+        @Override
+        public int getCount() {
+            return data.size();
+        }
+
+        @Override
+        public ProductsInfoResponse.Product getItem(int position) {
+            return data.get(position);
+        }
+
+        @Override
+        public long getItemId(int position) {
+            return position;
+        }
+
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+            if (convertView == null) {
+                convertView = View.inflate(getContext(), R.layout.custom_spinner_items, null);
+                new ViewHolder(convertView);
+            }
+            ViewHolder holder = (ViewHolder) convertView.getTag();
+            ProductsInfoResponse.Product item = getItem(position);
+            holder.name.setText(item.getProductName().toUpperCase());
+            return convertView;
+        }
+
+        private class ViewHolder {
+            TextView name;
+
+            ViewHolder(View view) {
+                name = (TextView) view.findViewById(R.id.textViewSpinner);
+                view.setTag(this);
+            }
+        }
+    }
+
+    //Models
+    public class ProductInfo {
+        public String id;
+        public String productName;
         public String quantity;
-        public CompanyNameModel companyName;
         public String price;
+    }
+
+    private class CompanySpinnerModel {
+        public String id;
+        public String name;
+    }
+
+    //webservices interfaces task
+    private class CompanyInfoTask extends AsyncTask<String, String, String> {
+
+        private ProgressDialog progressBar;
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            progressBar = new ProgressDialog(FormActivity.this);
+            progressBar.setMessage("Please wait...");
+            progressBar.setIndeterminate(true);
+            progressBar.setCancelable(false);
+            progressBar.show();
+        }
+
+        @Override
+        protected String doInBackground(final String... params) {
+
+            final ApiInterface apiService = ApiClient.getClient().create(ApiInterface.class);
+            Call<CompanyInfoResponse> infoCall = apiService.getCompaniesRequest();
+            infoCall.enqueue(new Callback<CompanyInfoResponse>() {
+                @Override
+                public void onResponse(Call<CompanyInfoResponse> call, Response<CompanyInfoResponse> response) {
+                    progressBar.dismiss();
+
+                    if (response.body().getStatus().equalsIgnoreCase("success")) {
+
+                        mCompaniesSpinnerList.clear();
+                        for (int i = 0; i < response.body().getCompanies().size(); i++) {
+                            CompanyInfoResponse.Company company = response.body().getCompanies().get(i);
+                            CompanySpinnerModel temp = new CompanySpinnerModel();
+                            temp.id = company.getId();
+                            temp.name = company.getCompanyName();
+                            mCompaniesSpinnerList.add(temp);
+                        }
+
+                    } else {
+                        FormActivity.this.runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                Toast.makeText(FormActivity.this, "No company found.", Toast.LENGTH_LONG).show();
+                            }
+                        });
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<CompanyInfoResponse> call, Throwable t) {
+                    // Log error here since request failed
+                    progressBar.dismiss();
+                    FormActivity.this.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(FormActivity.this, "Unable to connect, Please try again", Toast.LENGTH_LONG).show();
+                        }
+                    });
+                }
+            });
+            return null;
+        }
+    }
+
+    private class ProductsInfoTask extends AsyncTask<String, String, String> {
+
+        private ProgressDialog progressBar;
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            progressBar = new ProgressDialog(FormActivity.this);
+            progressBar.setMessage("Please wait...");
+            progressBar.setIndeterminate(true);
+            progressBar.setCancelable(false);
+            progressBar.show();
+        }
+
+        @Override
+        protected String doInBackground(final String... params) {
+
+            final ApiInterface apiService = ApiClient.getClient().create(ApiInterface.class);
+            Call<ProductsInfoResponse> infoCall = apiService.getCompaniesProductsRequest(params[0]);
+            infoCall.enqueue(new Callback<ProductsInfoResponse>() {
+                @Override
+                public void onResponse(Call<ProductsInfoResponse> call, Response<ProductsInfoResponse> response) {
+                    progressBar.dismiss();
+
+                    tvProducts.setText("Select Product");
+                    tvProductPrice.setText("");
+                    tvProductSize.setText("");
+
+                    if (response.body().getStatus().equalsIgnoreCase("success")) {
+
+                        mProductsSpinnerList.clear();
+                        for (int i = 0; i < response.body().getProducts().size(); i++) {
+                            ProductsInfoResponse.Product product = response.body().getProducts().get(i);
+                            mProductsSpinnerList.add(product);
+                        }
+
+                    } else {
+                        FormActivity.this.runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                Toast.makeText(FormActivity.this, "No product found.", Toast.LENGTH_LONG).show();
+                            }
+                        });
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<ProductsInfoResponse> call, Throwable t) {
+                    // Log error here since request failed
+                    progressBar.dismiss();
+                    FormActivity.this.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(FormActivity.this, "Unable to connect, Please try again", Toast.LENGTH_LONG).show();
+                        }
+                    });
+                }
+            });
+            return null;
+        }
+    }
+
+    private class CheckoutOrderTask extends AsyncTask<String, String, String> {
+
+        private ProgressDialog progressBar;
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            progressBar = new ProgressDialog(FormActivity.this);
+            progressBar.setMessage("Sending information, Please wait...");
+            progressBar.setIndeterminate(true);
+            progressBar.setCancelable(false);
+            progressBar.show();
+        }
+
+        @Override
+        protected String doInBackground(final String... params) {
+
+            String products = makProductsJsonObject(mProductsList).toString();
+            final ApiInterface apiService = ApiClient.getClient().create(ApiInterface.class);
+            Call<SimpleResponse> infoCall = apiService.addNewOrderRequest(params[0], params[1], params[2], products);
+            infoCall.enqueue(new Callback<SimpleResponse>() {
+                @Override
+                public void onResponse(Call<SimpleResponse> call, final Response<SimpleResponse> response) {
+                    progressBar.dismiss();
+                    if (response.body().getStatus().equalsIgnoreCase("success")) {
+                        FormActivity.this.runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                Intent intent = new Intent(FormActivity.this, ShowOrderedFormActivity.class);
+                                intent.putExtra("order_id", response.body().getOrderId());
+                                startActivity(intent);
+                                finish();
+                            }
+                        });
+                    } else {
+                        FormActivity.this.runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                Toast.makeText(FormActivity.this, "Failed to send order, " + response.body().getMessage(), Toast.LENGTH_LONG).show();
+                            }
+                        });
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<SimpleResponse> call, Throwable t) {
+                    // Log error here since request failed
+                    progressBar.dismiss();
+                    FormActivity.this.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(FormActivity.this, "Unable to connect, Please try again", Toast.LENGTH_LONG).show();
+                        }
+                    });
+                }
+            });
+            return null;
+        }
+    }
+
+    private JSONArray makProductsJsonObject(ArrayList<ProductInfo> prds) {
+        try {
+            JSONObject obj = null;
+            JSONArray jsonArray = new JSONArray();
+            for (int i = 0; i < prds.size(); i++) {
+                obj = new JSONObject();
+                obj.put("id", prds.get(i).id);
+                obj.put("quantity", prds.get(i).quantity);
+                jsonArray.put(obj);
+            }
+
+            Log.e("TAG", "sending : " + jsonArray.toString());
+            return jsonArray;
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return new JSONArray();
     }
 }

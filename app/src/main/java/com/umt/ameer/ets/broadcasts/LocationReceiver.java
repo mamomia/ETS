@@ -7,7 +7,6 @@ import android.graphics.Color;
 import android.location.Location;
 import android.os.AsyncTask;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.maps.model.CircleOptions;
@@ -40,7 +39,7 @@ public class LocationReceiver extends BroadcastReceiver {
             Log.i(TAG, "Location Received: " + this.mLocationResult.toString());
             Location loc = this.mLocationResult.getLastLocation();
             String user_id = GlobalSharedPrefs.ETSPrefs.getString(Constants.EMP_ID_KEY, "0");
-            new LocationTask().execute(user_id, Double.toString(loc.getLatitude()), Double.toString(loc.getLongitude()));
+            String sup_id = GlobalSharedPrefs.ETSPrefs.getString(Constants.EMP_SUPERIOR_ID_KEY, "0");
 
             //check if user is outside radius
             double mRadiusRange = Double.parseDouble(GlobalSharedPrefs.ETSPrefs.getString(Constants.EMP_RADIUS_KEY, "0"));
@@ -60,9 +59,16 @@ public class LocationReceiver extends BroadcastReceiver {
                     circleOptions.getCenter().latitude, circleOptions.getCenter().longitude, distance);
 
             if (distance[0] > circleOptions.getRadius()) {
-                Toast.makeText(context, "Employee is Outside radius", Toast.LENGTH_LONG).show();
+                new LocationTask().execute(user_id,
+                        Double.toString(loc.getLatitude()), Double.toString(loc.getLongitude()),
+                        sup_id,
+                        "false");
             } else {
-                Toast.makeText(context, "Employee is Inside radius", Toast.LENGTH_LONG).show();
+                new LocationTask().execute(user_id,
+                        Double.toString(loc.getLatitude()),
+                        Double.toString(loc.getLongitude()),
+                        sup_id,
+                        "true");
             }
             //end of checking
         }
@@ -73,7 +79,7 @@ public class LocationReceiver extends BroadcastReceiver {
         protected String doInBackground(final String... params) {
 
             final ApiInterface apiService = ApiClient.getClient().create(ApiInterface.class);
-            Call<SimpleResponse> infoCall = apiService.updateLocationRequest(params[0], params[1], params[2]);
+            Call<SimpleResponse> infoCall = apiService.updateLocationRequest(params[0], params[1], params[2], params[3], params[4]);
             infoCall.enqueue(new Callback<SimpleResponse>() {
                 @Override
                 public void onResponse(Call<SimpleResponse> call, Response<SimpleResponse> response) {

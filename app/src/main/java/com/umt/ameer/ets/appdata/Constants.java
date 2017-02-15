@@ -4,11 +4,6 @@ package com.umt.ameer.ets.appdata;
  * Created by Ameer on 3/12/2016.
  */
 public final class Constants {
-    private static String BASE_URL = "http://192.168.1.12:80/zimbra/index.php/webservice/";
-    public static String GET_COMPANY_NAME_URL = BASE_URL + "get_company_name";
-    public static String GET_PRODUCT_NAME_URL = BASE_URL + "get_product_name";
-    public static String GET_UPDATE_PICTURE_URL = BASE_URL + "get_send_location_update";
-
     // Milliseconds per second
     private static final int MILLISECONDS_PER_SECOND = 1000;
     // Update frequency in seconds
@@ -31,6 +26,8 @@ public final class Constants {
     public static final String EMP_PHONE_KEY = "user_phone";
     public static final String EMP_JOIN_DATE_KEY = "user_join_date";
     public static final String EMP_STATUS_KEY = "user_status";
+    public static final String EMP_ON_DUTY_TIME_KEY = "user_on_duty_time";
+    public static final String EMP_OFF_DUTY_TIME_KEY = "user_off_duty_time";
     public static final String EMP_STATUS_BREAK_CONTENT_KEY = "user_break_content";
     public static final String EMP_SUPERIOR_ID_KEY = "user_superior_id";
     public static final String EMP_RADIUS_KEY = "user_radius";

@@ -7,7 +7,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
  * Created by Mushi on 8/29/2016.
  */
 public class ApiClient {
-    private static final String BASE_URL = "http://192.168.1.13:80/zimbra/index.php/webservice/";
+    private static final String BASE_URL = "http://192.168.1.17:80/zimbra/index.php/webservice/";
     private static Retrofit retrofit = null;
 
     public static Retrofit getClient() {

@@ -16,7 +16,6 @@ import android.os.IBinder;
 import android.os.PowerManager;
 import android.support.v4.app.ActivityCompat;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
@@ -165,7 +164,7 @@ public class BackgroundLocationService extends Service implements
         // Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
         appendLog(DateFormat.getDateTimeInstance().format(new Date()) + ":" + msg, Constants.LOCATION_FILE);
         String user_id = GlobalSharedPrefs.ETSPrefs.getString(Constants.EMP_ID_KEY, "0");
-        new LocationTask().execute(user_id, Double.toString(location.getLatitude()), Double.toString(location.getLongitude()));
+        String sup_id = GlobalSharedPrefs.ETSPrefs.getString(Constants.EMP_SUPERIOR_ID_KEY, "0");
 
         //check if user is outside radius
         double mRadiusRange = Double.parseDouble(GlobalSharedPrefs.ETSPrefs.getString(Constants.EMP_RADIUS_KEY, "0"));
@@ -185,9 +184,17 @@ public class BackgroundLocationService extends Service implements
                 circleOptions.getCenter().latitude, circleOptions.getCenter().longitude, distance);
 
         if (distance[0] > circleOptions.getRadius()) {
-            Toast.makeText(getApplicationContext(), "Employee is Outside radius", Toast.LENGTH_LONG).show();
+            new LocationTask().execute(user_id,
+                    Double.toString(location.getLatitude()),
+                    Double.toString(location.getLongitude()),
+                    sup_id,
+                    "false");
         } else {
-            Toast.makeText(getApplicationContext(), "Employee is Inside radius", Toast.LENGTH_LONG).show();
+            new LocationTask().execute(user_id,
+                    Double.toString(location.getLatitude()),
+                    Double.toString(location.getLongitude()),
+                    sup_id,
+                    "true");
         }
         //end of checking
 
@@ -317,7 +324,7 @@ public class BackgroundLocationService extends Service implements
         protected String doInBackground(final String... params) {
 
             final ApiInterface apiService = ApiClient.getClient().create(ApiInterface.class);
-            Call<SimpleResponse> infoCall = apiService.updateLocationRequest(params[0], params[1], params[2]);
+            Call<SimpleResponse> infoCall = apiService.updateLocationRequest(params[0], params[1], params[2], params[3], params[4]);
             infoCall.enqueue(new Callback<SimpleResponse>() {
                 @Override
                 public void onResponse(Call<SimpleResponse> call, Response<SimpleResponse> response) {

@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.TextInputLayout;
+import android.support.v7.app.AppCompatActivity;
 import android.text.Editable;
 import android.text.TextUtils;
 import android.text.TextWatcher;
@@ -23,7 +24,6 @@ import android.widget.Toast;
 import com.umt.ameer.ets.appdata.Constants;
 import com.umt.ameer.ets.appdata.GlobalSharedPrefs;
 import com.umt.ameer.ets.appdata.SessionManager;
-import com.umt.ameer.ets.extras.CustomButtonBaseActivity;
 import com.umt.ameer.ets.networkmodels.UserInfoResponse;
 import com.umt.ameer.ets.rest.ApiClient;
 import com.umt.ameer.ets.rest.ApiInterface;
@@ -32,7 +32,7 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class LoginActivity extends CustomButtonBaseActivity {
+public class LoginActivity extends AppCompatActivity {
 
     private SessionManager session;
     private String TAG = "Login Activity";

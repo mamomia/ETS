@@ -77,8 +77,8 @@ public class DashboardActivity extends AppCompatActivity {
                         .showCancelButton(true)
                         .setCancelClickListener(new SweetAlertDialog.OnSweetClickListener() {
                             @Override
-                            public void onClick(SweetAlertDialog sDialog) {
-                                sDialog.cancel();
+                            public void onClick(SweetAlertDialog sweetAlertDialog) {
+                                sweetAlertDialog.dismissWithAnimation();
                             }
                         }).setConfirmClickListener(new SweetAlertDialog.OnSweetClickListener() {
                     @Override
@@ -86,6 +86,7 @@ public class DashboardActivity extends AppCompatActivity {
 
                         Intent intent = new Intent(DashboardActivity.this, FormActivity.class);
                         startActivity(intent);
+                        sweetAlertDialog.dismissWithAnimation();
                     }
                 }).show();
             }

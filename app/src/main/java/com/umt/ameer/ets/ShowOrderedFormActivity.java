@@ -6,6 +6,7 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -45,6 +46,16 @@ public class ShowOrderedFormActivity extends AppCompatActivity {
         new GlobalSharedPrefs(this);
         mUserId = GlobalSharedPrefs.ETSPrefs.getString(Constants.EMP_ID_KEY, "0");
         mOrderId = getIntent().getStringExtra("order_id");
+
+        Toolbar mToolbar = (Toolbar) findViewById(R.id.toolbarShowOrder);
+        mToolbar.setTitle("ORDER INFO");
+        mToolbar.setLogo(R.drawable.ic_back);
+        mToolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                finish();
+            }
+        });
 
         mShopName = (TextView) findViewById(R.id.tvShopNameShowDetail);
         mOrderDate = (TextView) findViewById(R.id.tvDateShowDetail);

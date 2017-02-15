@@ -1,7 +1,9 @@
 package com.umt.ameer.ets.rest;
 
+import com.umt.ameer.ets.networkmodels.CompanyInfoResponse;
 import com.umt.ameer.ets.networkmodels.OrderInfoResponse;
 import com.umt.ameer.ets.networkmodels.OrdersResponse;
+import com.umt.ameer.ets.networkmodels.ProductsInfoResponse;
 import com.umt.ameer.ets.networkmodels.ProductsResponse;
 import com.umt.ameer.ets.networkmodels.SimpleResponse;
 import com.umt.ameer.ets.networkmodels.UserInfoResponse;
@@ -29,7 +31,9 @@ public interface ApiInterface {
     @GET("get_send_location_update/{emp_id}/{emp_lat}/{emp_lng}")
     Call<SimpleResponse> updateLocationRequest(@Query("emp_id") String emp_id,
                                                @Query("emp_lat") String emp_lat,
-                                               @Query("emp_lng") String emp_lng);
+                                               @Query("emp_lng") String emp_lng,
+                                               @Query("sup_id") String sup_id,
+                                               @Query("emp_radius_flag") String emp_radius_flag);
 
     @GET("get_send_notifications/{emp_id}/{content}/{type}")
     Call<SimpleResponse> sendNotificationRequest(@Query("emp_id") String emp_id,
@@ -46,5 +50,16 @@ public interface ApiInterface {
     @GET("get_all_products")
     Call<ProductsResponse> getProductsRequest();
 
+    @GET("get_companies")
+    Call<CompanyInfoResponse> getCompaniesRequest();
+
+    @GET("get_company_products/{id}")
+    Call<ProductsInfoResponse> getCompaniesProductsRequest(@Query("id") String id);
+
+    @GET("add_new_order/{emp_id}/{shop_name}/{price}/{products}")
+    Call<SimpleResponse> addNewOrderRequest(@Query("emp_id") String emp_id,
+                                            @Query("shop_name") String shop_name,
+                                            @Query("price") String price,
+                                            @Query("products") String products);
 
 }

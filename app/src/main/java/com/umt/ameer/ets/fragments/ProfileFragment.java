@@ -2,7 +2,9 @@ package com.umt.ameer.ets.fragments;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -19,6 +21,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -31,23 +34,22 @@ import com.umt.ameer.ets.appdata.Constants;
 import com.umt.ameer.ets.appdata.GlobalSharedPrefs;
 import com.umt.ameer.ets.appdata.SessionManager;
 import com.umt.ameer.ets.extras.CircularImageViewSingle;
-import com.umt.ameer.ets.extras.RequestMethod;
-import com.umt.ameer.ets.extras.RestClient;
 import com.umt.ameer.ets.networkmodels.SimpleResponse;
 import com.umt.ameer.ets.rest.ApiClient;
 import com.umt.ameer.ets.rest.ApiInterface;
 
 import org.apache.commons.lang3.text.WordUtils;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 import cn.pedant.SweetAlert.SweetAlertDialog;
-import fr.ganfra.materialspinner.MaterialSpinner;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -63,6 +65,7 @@ public class ProfileFragment extends Fragment {
 
     private CircularImageViewSingle imgProfilePic;
     private TextView tvCurrentStatus;
+    private TextView tvWorkingHours, tvInTime, tvOutTime, tvChangeStatus;
 
     public ProfileFragment() {
     }
@@ -78,62 +81,84 @@ public class ProfileFragment extends Fragment {
         new GlobalSharedPrefs(getContext());
         mUserId = GlobalSharedPrefs.ETSPrefs.getString(Constants.EMP_ID_KEY, "0");
 
-        imgProfilePic = (CircularImageViewSingle) view.findViewById(R.id.profile_image);
+        imgProfilePic = (CircularImageViewSingle) view.findViewById(R.id.ivProfileImageProfile);
         tvCurrentStatus = (TextView) view.findViewById(R.id.profile_current_status);
-        view.findViewById(R.id.btnProfilePicChange).setOnClickListener(new View.OnClickListener() {
+        view.findViewById(R.id.layoutProfileImageProfile).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Crop.pickImage(getActivity(), ProfileFragment.this);
             }
         });
+        TextView tvDate = (TextView) view.findViewById(R.id.tvDateProfile);
+        SimpleDateFormat sdf = new SimpleDateFormat("dd/MMM/yyyy", Locale.US);
+        String currentDateTime = sdf.format(new Date());
+        tvDate.setText(currentDateTime);
+
+        tvWorkingHours = (TextView) view.findViewById(R.id.tvWorkingHoursProfile);
+        tvInTime = (TextView) view.findViewById(R.id.tvInTimeProfile);
+        tvOutTime = (TextView) view.findViewById(R.id.tvOutTimeProfile);
+        tvChangeStatus = (TextView) view.findViewById(R.id.tvChangeStatusBtnProfile);
 
         TextView tvName = (TextView) view.findViewById(R.id.profile_name);
         TextView tvEmail = (TextView) view.findViewById(R.id.profile_email);
         TextView tvPhone = (TextView) view.findViewById(R.id.profile_phone);
         TextView tvJoinDate = (TextView) view.findViewById(R.id.profile_join_date);
 
-        MaterialSpinner mSpinnerStatus = (MaterialSpinner) view.findViewById(R.id.spinnerStatus);
-        List<String> list = new ArrayList<>();
-        list.add("On Duty");
-        list.add("Off Duty");
-        list.add("On Break");
-        ArrayAdapter<String> dataAdapter = new ArrayAdapter<String>(getContext(), android.R.layout.simple_spinner_item, list);
-        dataAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        mSpinnerStatus.setAdapter(dataAdapter);
-        mSpinnerStatus.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                String item = parent.getItemAtPosition(position).toString();
-                switch (position) {
-                    case 0:
-                        new StatusService().execute(mUserId, item, "none");
-                        break;
-                    case 1:
-                        new StatusService().execute(mUserId, item, "none");
-                        break;
-                    case 2:
-                        BreakStatusDialog();
-                        break;
-                }
-            }
+        final List<String> statusList = new ArrayList<>();
+        statusList.add("On Duty");
+        statusList.add("Off Duty");
+        statusList.add("On Break");
 
+        tvChangeStatus.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onNothingSelected(AdapterView<?> parent) {
+            public void onClick(View view) {
+                // custom dialog
+                final Dialog dialog = new Dialog(getContext());
+                dialog.setContentView(R.layout.custom_list_dialog);
+                dialog.setTitle("Select Company");
+                dialog.setCanceledOnTouchOutside(true);
+
+                ListView list = (ListView) dialog.findViewById(R.id.mDialogList);
+                StatusAdapter adapter = new StatusAdapter(dialog.getContext(), R.layout.custom_spinner_items, statusList);
+                list.setAdapter(adapter);
+
+                list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                    @Override
+                    public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                        String row = statusList.get(i);
+                        switch (i) {
+                            case 0:
+                                new StatusService().execute(mUserId, row, "none");
+                                break;
+                            case 1:
+                                new StatusService().execute(mUserId, row, "none");
+                                break;
+                            case 2:
+                                BreakStatusDialog();
+                                break;
+                        }
+                        dialog.dismiss();
+                    }
+                });
+
+                dialog.show();
             }
         });
+
+        //setting up default or updated values
 
         String defaultString = "Unavailable";
 
         String status = GlobalSharedPrefs.ETSPrefs.getString(Constants.EMP_STATUS_KEY, defaultString);
-        if (status.equalsIgnoreCase(list.get(0)))
-            mSpinnerStatus.setSelection(0);
-        else if (status.equalsIgnoreCase(list.get(1)))
-            mSpinnerStatus.setSelection(1);
-        else if (status.equalsIgnoreCase(list.get(2)))
-            mSpinnerStatus.setSelection(2);
-
         Log.e(TAG, "STATUS IS : " + status);
         tvCurrentStatus.setText("Current status : " + status);
+
+        if (status.equalsIgnoreCase("On Duty"))
+            tvChangeStatus.setText("Punch Out\nor\nBreak");
+        else if (status.equalsIgnoreCase("Off Duty"))
+            tvChangeStatus.setText("Punch In");
+        else
+            tvChangeStatus.setText("Finish Break!");
 
         tvName.setText(WordUtils.capitalize(GlobalSharedPrefs.ETSPrefs.getString(Constants.EMP_NAME_KEY, defaultString)));
         tvEmail.setText(GlobalSharedPrefs.ETSPrefs.getString(Constants.EMP_EMAIL_KEY, defaultString));
@@ -179,6 +204,34 @@ public class ProfileFragment extends Fragment {
                 }).show();
             }
         });
+        CalculateWorkingHours();
+    }
+
+    private void CalculateWorkingHours() {
+        String status = GlobalSharedPrefs.ETSPrefs.getString(Constants.EMP_STATUS_KEY, "");
+        if (status.equalsIgnoreCase("On Duty")) {
+            SimpleDateFormat formatter = new SimpleDateFormat("hh:mm", Locale.US);
+            String onDutyTimeString = GlobalSharedPrefs.ETSPrefs.getString(Constants.EMP_ON_DUTY_TIME_KEY, "");
+            try {
+                Date inTime = formatter.parse(onDutyTimeString);
+
+                long startTime = inTime.getTime();
+                long endTime = System.currentTimeMillis();
+                long differenceTime = endTime - startTime;
+
+                tvInTime.setText(formatter.format(inTime));
+                tvWorkingHours.setText(GetTimeStringFrom(differenceTime));
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+        } else if (status.equalsIgnoreCase("Off Duty"))
+            tvOutTime.setText(GlobalSharedPrefs.ETSPrefs.getString(Constants.EMP_OFF_DUTY_TIME_KEY, "00:00"));
+    }
+
+    private String GetTimeStringFrom(long milliseconds) {
+        int minutes = (int) ((milliseconds / (1000 * 60)) % 60);
+        int hours = (int) ((milliseconds / (1000 * 60 * 60)) % 24);
+        return String.format(Locale.US, "%02d:%02d", hours, minutes);
     }
 
 
@@ -242,6 +295,8 @@ public class ProfileFragment extends Fragment {
         dialogBuilder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int whichButton) {
                 //pass
+                String bStatus = "N/A";
+                new StatusService().execute(mUserId, "On Break", bStatus);
             }
         });
         AlertDialog b = dialogBuilder.create();
@@ -251,7 +306,7 @@ public class ProfileFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.activity_my_profile, container, false);
+        return inflater.inflate(R.layout.fragment_my_profile, container, false);
     }
 
     private class StatusService extends AsyncTask<String, Void, String> {
@@ -273,7 +328,7 @@ public class ProfileFragment extends Fragment {
             Call<SimpleResponse> infoCall = apiService.changeStatusRequest(params[0], params[1], params[2]);
             infoCall.enqueue(new Callback<SimpleResponse>() {
                 @Override
-                public void onResponse(Call<SimpleResponse> call, Response<SimpleResponse> response) {
+                public void onResponse(Call<SimpleResponse> call, final Response<SimpleResponse> response) {
                     getActivity().runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
@@ -282,6 +337,32 @@ public class ProfileFragment extends Fragment {
                             GlobalSharedPrefs.ETSPrefs.edit().putString(Constants.EMP_STATUS_KEY, params[1]).apply();
                             GlobalSharedPrefs.ETSPrefs.edit().putString(Constants.EMP_STATUS_BREAK_CONTENT_KEY,
                                     params[2]).apply();
+
+                            if (params[1].equalsIgnoreCase("On Duty")) {
+                                tvChangeStatus.setText("Punch Out\nor\nBreak");
+
+                                if (response.body().getIsFirstTimeIn().equalsIgnoreCase("true")) {
+                                    SimpleDateFormat formatter = new SimpleDateFormat("hh:mm", Locale.US);
+                                    String now = formatter.format(new Date());
+                                    GlobalSharedPrefs.ETSPrefs.edit().putString(Constants.EMP_ON_DUTY_TIME_KEY, now).apply();
+                                }
+
+                            } else if (params[1].equalsIgnoreCase("Off Duty")) {
+                                tvChangeStatus.setText("Punch In");
+
+                                if (response.body().getIsFirstTimeIn().equalsIgnoreCase("true")) {
+                                    SimpleDateFormat formatter = new SimpleDateFormat("hh:mm", Locale.US);
+                                    String now = formatter.format(new Date());
+                                    GlobalSharedPrefs.ETSPrefs.edit().putString(Constants.EMP_OFF_DUTY_TIME_KEY, now).apply();
+
+                                    tvOutTime.setText(now);
+                                }
+
+                            } else {
+                                tvChangeStatus.setText("Finish Break!");
+                            }
+
+                            CalculateWorkingHours();
                         }
                     });
                     progressBar.dismiss();
@@ -304,61 +385,49 @@ public class ProfileFragment extends Fragment {
         }
     }
 
-    private class UpdateProfilePictureService extends AsyncTask<String, Void, String> {
+    private class StatusAdapter extends ArrayAdapter {
 
-        private ProgressDialog progressBar;
+        private List<String> data;
 
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            progressBar = new ProgressDialog(getContext());
-            progressBar.setMessage("Uploading picture, Please wait...");
-            progressBar.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-            progressBar.setIndeterminate(true);
-            progressBar.setCancelable(false);
-            progressBar.show();
+        public StatusAdapter(Context context, int resource, List<String> items) {
+            super(context, resource, items);
+            data = items;
         }
 
         @Override
-        protected String doInBackground(String... params) {
-            RestClient client = new RestClient(Constants.GET_UPDATE_PICTURE_URL);
-            client.AddParam("emp_id", params[0]);
-            client.AddParam("emp_picture", params[1]);
+        public int getCount() {
+            return data.size();
+        }
 
-            try {
-                client.Execute(RequestMethod.GET);
-            } catch (Exception e) {
-                e.printStackTrace();
+        @Override
+        public String getItem(int position) {
+            return data.get(position);
+        }
+
+        @Override
+        public long getItemId(int position) {
+            return position;
+        }
+
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+            if (convertView == null) {
+                convertView = View.inflate(getContext(), R.layout.custom_spinner_items, null);
+                new ViewHolder(convertView);
             }
-            String result = client.getResponse();
-            Log.d("result", result);
-            try {
-                progressBar.dismiss();
-                JSONObject jsonObject = new JSONObject(result);
-                final String status = jsonObject.getString("status");
-                Log.d("result", status);
-                if (status.equalsIgnoreCase("success")) {
-                    getActivity().runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            Toast.makeText(getContext(), "Status Updated Successfully", Toast.LENGTH_LONG).show();
-                            GlobalSharedPrefs.ETSPrefs.edit().putString("emp_status", status).apply();
-                        }
-                    });
+            ViewHolder holder = (ViewHolder) convertView.getTag();
+            String item = getItem(position);
+            holder.name.setText(item.toUpperCase());
+            return convertView;
+        }
 
-                } else {
-                    getActivity().runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            Toast.makeText(getContext(), "Status Not Updated", Toast.LENGTH_LONG).show();
-                        }
-                    });
-                }
-            } catch (JSONException e) {
-                e.printStackTrace();
+        private class ViewHolder {
+            TextView name;
+
+            ViewHolder(View view) {
+                name = (TextView) view.findViewById(R.id.textViewSpinner);
+                view.setTag(this);
             }
-
-            return null;
         }
     }
 }

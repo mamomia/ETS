@@ -15,6 +15,13 @@ public class SimpleResponse {
     @SerializedName("message")
     @Expose
     private String message;
+    @SerializedName("order_id")
+    @Expose
+    private String orderId;
+    @SerializedName("IsFirstTimeIn")
+    @Expose
+    private String IsFirstTimeIn;
+
 
     public String getStatus() {
         return status;
@@ -30,6 +37,22 @@ public class SimpleResponse {
 
     public void setMessage(String message) {
         this.message = message;
+    }
+
+    public String getOrderId() {
+        return orderId;
+    }
+
+    public void setOrderId(String orderId) {
+        this.orderId = orderId;
+    }
+
+    public String getIsFirstTimeIn() {
+        return IsFirstTimeIn;
+    }
+
+    public void setIsFirstTimeIn(String IsFirstTimeIn) {
+        this.IsFirstTimeIn = IsFirstTimeIn;
     }
 
 }
