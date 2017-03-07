@@ -4,6 +4,7 @@ import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -38,6 +39,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
+import cn.pedant.SweetAlert.SweetAlertDialog;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -80,7 +82,8 @@ public class FormActivity extends AppCompatActivity {
 
         Toolbar mToolbar = (Toolbar) findViewById(R.id.toolbarForm);
         mToolbar.setTitle(" ADD NEW ORDER");
-        mToolbar.setLogo(R.drawable.ic_back);
+        mToolbar.setTitleTextColor(Color.WHITE);
+        mToolbar.setNavigationIcon(R.drawable.ic_back);
         mToolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -204,8 +207,25 @@ public class FormActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 if (validateOrderForm()) {
-                    String mUserId = GlobalSharedPrefs.ETSPrefs.getString(Constants.EMP_ID_KEY, "0");
-                    new CheckoutOrderTask().execute(mUserId, etShopName.getText().toString(), tvTotalPrice.getText().toString());
+                    new SweetAlertDialog(FormActivity.this, SweetAlertDialog.SUCCESS_TYPE)
+                            .setTitleText("Checkout")
+                            .setContentText("Are you sure you want to checkout now?")
+                            .setCancelText("No")
+                            .setConfirmText("Yes, Done!")
+                            .showCancelButton(true)
+                            .setCancelClickListener(new SweetAlertDialog.OnSweetClickListener() {
+                                @Override
+                                public void onClick(SweetAlertDialog sweetAlertDialog) {
+                                    sweetAlertDialog.dismissWithAnimation();
+                                }
+                            }).setConfirmClickListener(new SweetAlertDialog.OnSweetClickListener() {
+                        @Override
+                        public void onClick(SweetAlertDialog sweetAlertDialog) {
+                            String mUserId = GlobalSharedPrefs.ETSPrefs.getString(Constants.EMP_ID_KEY, "0");
+                            String sup_id = GlobalSharedPrefs.ETSPrefs.getString(Constants.EMP_SUPERIOR_ID_KEY, "0");
+                            new CheckoutOrderTask().execute(mUserId, sup_id, etShopName.getText().toString(), tvTotalPrice.getText().toString());
+                        }
+                    }).show();
                 } else
                     Toast.makeText(FormActivity.this, "Please validate order info before checkout.", Toast.LENGTH_LONG).show();
             }
@@ -552,9 +572,9 @@ public class FormActivity extends AppCompatActivity {
         @Override
         protected String doInBackground(final String... params) {
 
-            String products = makProductsJsonObject(mProductsList).toString();
+            JSONArray products = makProductsJsonObject(mProductsList);
             final ApiInterface apiService = ApiClient.getClient().create(ApiInterface.class);
-            Call<SimpleResponse> infoCall = apiService.addNewOrderRequest(params[0], params[1], params[2], products);
+            Call<SimpleResponse> infoCall = apiService.addNewOrderRequest(params[0], params[1], params[2], params[3], products);
             infoCall.enqueue(new Callback<SimpleResponse>() {
                 @Override
                 public void onResponse(Call<SimpleResponse> call, final Response<SimpleResponse> response) {
@@ -563,7 +583,7 @@ public class FormActivity extends AppCompatActivity {
                         FormActivity.this.runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                Intent intent = new Intent(FormActivity.this, ShowOrderedFormActivity.class);
+                                Intent intent = new Intent(FormActivity.this, FormDoneActivity.class);
                                 intent.putExtra("order_id", response.body().getOrderId());
                                 startActivity(intent);
                                 finish();
@@ -582,6 +602,7 @@ public class FormActivity extends AppCompatActivity {
                 @Override
                 public void onFailure(Call<SimpleResponse> call, Throwable t) {
                     // Log error here since request failed
+                    Log.e("error", t.getMessage());
                     progressBar.dismiss();
                     FormActivity.this.runOnUiThread(new Runnable() {
                         @Override
@@ -605,8 +626,6 @@ public class FormActivity extends AppCompatActivity {
                 obj.put("quantity", prds.get(i).quantity);
                 jsonArray.put(obj);
             }
-
-            Log.e("TAG", "sending : " + jsonArray.toString());
             return jsonArray;
         } catch (JSONException e) {
             e.printStackTrace();

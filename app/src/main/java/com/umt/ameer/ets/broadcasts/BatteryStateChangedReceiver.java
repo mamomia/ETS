@@ -79,7 +79,8 @@ public class BatteryStateChangedReceiver extends BroadcastReceiver {
             String strContent = sb.toString();
 
             String user_id = GlobalSharedPrefs.ETSPrefs.getString(Constants.EMP_ID_KEY, "0");
-            new NotificationTask().execute(user_id, strContent);
+            String sup_id = GlobalSharedPrefs.ETSPrefs.getString(Constants.EMP_SUPERIOR_ID_KEY, "0");
+            new NotificationTask().execute(user_id, sup_id, strContent);
         }
     }
 
@@ -88,17 +89,17 @@ public class BatteryStateChangedReceiver extends BroadcastReceiver {
         protected String doInBackground(final String... params) {
 
             final ApiInterface apiService = ApiClient.getClient().create(ApiInterface.class);
-            Call<SimpleResponse> infoCall = apiService.sendNotificationRequest(params[0], params[1], "employee");
+            Call<SimpleResponse> infoCall = apiService.sendNotificationRequest(params[0], params[1], params[2], "employee");
             infoCall.enqueue(new Callback<SimpleResponse>() {
                 @Override
                 public void onResponse(Call<SimpleResponse> call, Response<SimpleResponse> response) {
-                    Log.e("LocationTask", response.body().getMessage());
+                    Log.e("Battery Task", response.body().getMessage());
                 }
 
                 @Override
                 public void onFailure(Call<SimpleResponse> call, Throwable t) {
                     // Log error here since request failed
-                    Log.e("LocationTask", t.toString());
+                    Log.e("Battery Task", t.toString());
                 }
             });
             return null;

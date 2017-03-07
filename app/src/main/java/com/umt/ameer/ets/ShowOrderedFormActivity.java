@@ -2,11 +2,13 @@ package com.umt.ameer.ets;
 
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,24 +17,27 @@ import android.view.animation.AnimationUtils;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.github.mrengineer13.snackbar.SnackBar;
 import com.umt.ameer.ets.appdata.Constants;
 import com.umt.ameer.ets.appdata.GlobalSharedPrefs;
 import com.umt.ameer.ets.models.ProductModel;
 import com.umt.ameer.ets.networkmodels.OrderInfoResponse;
+import com.umt.ameer.ets.networkmodels.SimpleResponse;
 import com.umt.ameer.ets.rest.ApiClient;
 import com.umt.ameer.ets.rest.ApiInterface;
 
 import java.util.ArrayList;
 
+import cn.pedant.SweetAlert.SweetAlertDialog;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
 public class ShowOrderedFormActivity extends AppCompatActivity {
 
-    private String mOrderId, mUserId;
+    private String mOrderId, mUserId, mSupId;
     private TextView mShopName, mOrderDate, mPrice, mStatusCancel, mStatusPending, mStatusDelivered;
     private ListView mProductsListView;
     private DetailListAdapter mListAdapter;
@@ -45,11 +50,13 @@ public class ShowOrderedFormActivity extends AppCompatActivity {
 
         new GlobalSharedPrefs(this);
         mUserId = GlobalSharedPrefs.ETSPrefs.getString(Constants.EMP_ID_KEY, "0");
+        mSupId = GlobalSharedPrefs.ETSPrefs.getString(Constants.EMP_SUPERIOR_ID_KEY, "0");
         mOrderId = getIntent().getStringExtra("order_id");
 
         Toolbar mToolbar = (Toolbar) findViewById(R.id.toolbarShowOrder);
         mToolbar.setTitle("ORDER INFO");
-        mToolbar.setLogo(R.drawable.ic_back);
+        mToolbar.setTitleTextColor(Color.WHITE);
+        mToolbar.setNavigationIcon(R.drawable.ic_back);
         mToolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -68,6 +75,76 @@ public class ShowOrderedFormActivity extends AppCompatActivity {
         listOfProducts = new ArrayList<>();
         mListAdapter = new DetailListAdapter(listOfProducts, this);
         mProductsListView.setAdapter(mListAdapter);
+
+
+        mStatusCancel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                new SweetAlertDialog(ShowOrderedFormActivity.this, SweetAlertDialog.WARNING_TYPE)
+                        .setTitleText("Alert")
+                        .setContentText("Are you sure you want to Cancel this order")
+                        .setCancelText("No")
+                        .setConfirmText("Yes, Do it!")
+                        .showCancelButton(true)
+                        .setCancelClickListener(new SweetAlertDialog.OnSweetClickListener() {
+                            @Override
+                            public void onClick(SweetAlertDialog sweetAlertDialog) {
+                                sweetAlertDialog.dismissWithAnimation();
+                            }
+                        }).setConfirmClickListener(new SweetAlertDialog.OnSweetClickListener() {
+                    @Override
+                    public void onClick(SweetAlertDialog sweetAlertDialog) {
+
+                    }
+                }).show();
+            }
+        });
+
+        mStatusPending.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                new SweetAlertDialog(ShowOrderedFormActivity.this, SweetAlertDialog.WARNING_TYPE)
+                        .setTitleText("Alert")
+                        .setContentText("Are you sure you want to set status Pending for this order?")
+                        .setCancelText("No")
+                        .setConfirmText("Yes!")
+                        .showCancelButton(true)
+                        .setCancelClickListener(new SweetAlertDialog.OnSweetClickListener() {
+                            @Override
+                            public void onClick(SweetAlertDialog sweetAlertDialog) {
+                                sweetAlertDialog.dismissWithAnimation();
+                            }
+                        }).setConfirmClickListener(new SweetAlertDialog.OnSweetClickListener() {
+                    @Override
+                    public void onClick(SweetAlertDialog sweetAlertDialog) {
+
+                    }
+                }).show();
+            }
+        });
+
+        mStatusDelivered.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                new SweetAlertDialog(ShowOrderedFormActivity.this, SweetAlertDialog.WARNING_TYPE)
+                        .setTitleText("Alert")
+                        .setContentText("Are you sure you want to set status Delivered for this order")
+                        .setCancelText("No")
+                        .setConfirmText("Yes, Done!")
+                        .showCancelButton(true)
+                        .setCancelClickListener(new SweetAlertDialog.OnSweetClickListener() {
+                            @Override
+                            public void onClick(SweetAlertDialog sweetAlertDialog) {
+                                sweetAlertDialog.dismissWithAnimation();
+                            }
+                        }).setConfirmClickListener(new SweetAlertDialog.OnSweetClickListener() {
+                    @Override
+                    public void onClick(SweetAlertDialog sweetAlertDialog) {
+
+                    }
+                }).show();
+            }
+        });
 
         new GetOrderInfoTask().execute(mUserId, mOrderId);
     }
@@ -233,6 +310,52 @@ public class ShowOrderedFormActivity extends AppCompatActivity {
             viewHolder.txtQuant.setText(dataModel.productquan);
             // Return the completed view to render on screen
             return convertView;
+        }
+    }
+
+    private class StatusService extends AsyncTask<String, Void, String> {
+        private ProgressDialog progressBar;
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            progressBar = new ProgressDialog(ShowOrderedFormActivity.this);
+            progressBar.setMessage("Updating status, Please wait...");
+            progressBar.setIndeterminate(true);
+            progressBar.setCancelable(false);
+            progressBar.show();
+        }
+
+        @Override
+        protected String doInBackground(final String... params) {
+            final ApiInterface apiService = ApiClient.getClient().create(ApiInterface.class);
+            Call<SimpleResponse> infoCall = apiService.changeStatusRequest(params[0], params[1], params[2], params[3]);
+            infoCall.enqueue(new Callback<SimpleResponse>() {
+                @Override
+                public void onResponse(Call<SimpleResponse> call, final Response<SimpleResponse> response) {
+                    ShowOrderedFormActivity.this.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(ShowOrderedFormActivity.this, "Status Updated Successfully", Toast.LENGTH_LONG).show();
+                        }
+                    });
+                    progressBar.dismiss();
+                }
+
+                @Override
+                public void onFailure(Call<SimpleResponse> call, Throwable t) {
+                    // Log error here since request failed
+                    Log.e("error", t.toString());
+                    progressBar.dismiss();
+                    ShowOrderedFormActivity.this.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(ShowOrderedFormActivity.this, "Unable to connect, Please try again", Toast.LENGTH_LONG).show();
+                        }
+                    });
+                }
+            });
+            return null;
         }
     }
 }

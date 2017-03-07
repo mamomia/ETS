@@ -61,7 +61,7 @@ import retrofit2.Response;
 public class ProfileFragment extends Fragment {
 
     private static final String TAG = "Settings Fragment";
-    private static String mUserId = "";
+    private static String mUserId = "", mSupId = "";
 
     private CircularImageViewSingle imgProfilePic;
     private TextView tvCurrentStatus;
@@ -80,6 +80,7 @@ public class ProfileFragment extends Fragment {
 
         new GlobalSharedPrefs(getContext());
         mUserId = GlobalSharedPrefs.ETSPrefs.getString(Constants.EMP_ID_KEY, "0");
+        mSupId = GlobalSharedPrefs.ETSPrefs.getString(Constants.EMP_SUPERIOR_ID_KEY, "0");
 
         imgProfilePic = (CircularImageViewSingle) view.findViewById(R.id.ivProfileImageProfile);
         tvCurrentStatus = (TextView) view.findViewById(R.id.profile_current_status);
@@ -108,42 +109,6 @@ public class ProfileFragment extends Fragment {
         statusList.add("On Duty");
         statusList.add("Off Duty");
         statusList.add("On Break");
-
-        tvChangeStatus.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                // custom dialog
-                final Dialog dialog = new Dialog(getContext());
-                dialog.setContentView(R.layout.custom_list_dialog);
-                dialog.setTitle("Select Company");
-                dialog.setCanceledOnTouchOutside(true);
-
-                ListView list = (ListView) dialog.findViewById(R.id.mDialogList);
-                StatusAdapter adapter = new StatusAdapter(dialog.getContext(), R.layout.custom_spinner_items, statusList);
-                list.setAdapter(adapter);
-
-                list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                    @Override
-                    public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                        String row = statusList.get(i);
-                        switch (i) {
-                            case 0:
-                                new StatusService().execute(mUserId, row, "none");
-                                break;
-                            case 1:
-                                new StatusService().execute(mUserId, row, "none");
-                                break;
-                            case 2:
-                                BreakStatusDialog();
-                                break;
-                        }
-                        dialog.dismiss();
-                    }
-                });
-
-                dialog.show();
-            }
-        });
 
         //setting up default or updated values
 
@@ -179,6 +144,42 @@ public class ProfileFragment extends Fragment {
                     }
                 });
 
+        tvChangeStatus.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                // custom dialog
+                final Dialog dialog = new Dialog(getContext());
+                dialog.setContentView(R.layout.custom_list_dialog);
+                dialog.setTitle("Select Company");
+                dialog.setCanceledOnTouchOutside(true);
+
+                ListView list = (ListView) dialog.findViewById(R.id.mDialogList);
+                StatusAdapter adapter = new StatusAdapter(dialog.getContext(), R.layout.custom_spinner_items, statusList);
+                list.setAdapter(adapter);
+
+                list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                    @Override
+                    public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                        String row = statusList.get(i);
+                        switch (i) {
+                            case 0:
+                                new StatusService().execute(mUserId, mSupId, row, "none");
+                                break;
+                            case 1:
+                                new StatusService().execute(mUserId, mSupId, row, "none");
+                                break;
+                            case 2:
+                                BreakStatusDialog();
+                                break;
+                        }
+                        dialog.dismiss();
+                    }
+                });
+
+                dialog.show();
+            }
+        });
+
         view.findViewById(R.id.btnProfileLogout).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -204,6 +205,7 @@ public class ProfileFragment extends Fragment {
                 }).show();
             }
         });
+
         CalculateWorkingHours();
     }
 
@@ -211,7 +213,7 @@ public class ProfileFragment extends Fragment {
         String status = GlobalSharedPrefs.ETSPrefs.getString(Constants.EMP_STATUS_KEY, "");
         if (status.equalsIgnoreCase("On Duty")) {
             SimpleDateFormat formatter = new SimpleDateFormat("hh:mm", Locale.US);
-            String onDutyTimeString = GlobalSharedPrefs.ETSPrefs.getString(Constants.EMP_ON_DUTY_TIME_KEY, "");
+            String onDutyTimeString = GlobalSharedPrefs.ETSPrefs.getString(Constants.EMP_ON_DUTY_TIME_KEY, "00:00");
             try {
                 Date inTime = formatter.parse(onDutyTimeString);
 
@@ -289,14 +291,14 @@ public class ProfileFragment extends Fragment {
             public void onClick(DialogInterface dialog, int whichButton) {
                 //do something with edt.getText().toString();
                 String bStatus = etStatus.getText().toString().trim();
-                new StatusService().execute(mUserId, "On Break", bStatus);
+                new StatusService().execute(mUserId, mSupId, "On Break", bStatus);
             }
         });
         dialogBuilder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int whichButton) {
                 //pass
                 String bStatus = "N/A";
-                new StatusService().execute(mUserId, "On Break", bStatus);
+                new StatusService().execute(mUserId, mSupId, "On Break", bStatus);
             }
         });
         AlertDialog b = dialogBuilder.create();
@@ -325,7 +327,7 @@ public class ProfileFragment extends Fragment {
         @Override
         protected String doInBackground(final String... params) {
             final ApiInterface apiService = ApiClient.getClient().create(ApiInterface.class);
-            Call<SimpleResponse> infoCall = apiService.changeStatusRequest(params[0], params[1], params[2]);
+            Call<SimpleResponse> infoCall = apiService.changeStatusRequest(params[0], params[1], params[2], params[3]);
             infoCall.enqueue(new Callback<SimpleResponse>() {
                 @Override
                 public void onResponse(Call<SimpleResponse> call, final Response<SimpleResponse> response) {
@@ -333,12 +335,12 @@ public class ProfileFragment extends Fragment {
                         @Override
                         public void run() {
                             Toast.makeText(getContext(), "Status Updated Successfully", Toast.LENGTH_LONG).show();
-                            tvCurrentStatus.setText("Current status : " + params[1]);
-                            GlobalSharedPrefs.ETSPrefs.edit().putString(Constants.EMP_STATUS_KEY, params[1]).apply();
+                            tvCurrentStatus.setText("Current status : " + params[2]);
+                            GlobalSharedPrefs.ETSPrefs.edit().putString(Constants.EMP_STATUS_KEY, params[2]).apply();
                             GlobalSharedPrefs.ETSPrefs.edit().putString(Constants.EMP_STATUS_BREAK_CONTENT_KEY,
-                                    params[2]).apply();
+                                    params[3]).apply();
 
-                            if (params[1].equalsIgnoreCase("On Duty")) {
+                            if (params[2].equalsIgnoreCase("On Duty")) {
                                 tvChangeStatus.setText("Punch Out\nor\nBreak");
 
                                 if (response.body().getIsFirstTimeIn().equalsIgnoreCase("true")) {
@@ -347,7 +349,7 @@ public class ProfileFragment extends Fragment {
                                     GlobalSharedPrefs.ETSPrefs.edit().putString(Constants.EMP_ON_DUTY_TIME_KEY, now).apply();
                                 }
 
-                            } else if (params[1].equalsIgnoreCase("Off Duty")) {
+                            } else if (params[2].equalsIgnoreCase("Off Duty")) {
                                 tvChangeStatus.setText("Punch In");
 
                                 if (response.body().getIsFirstTimeIn().equalsIgnoreCase("true")) {

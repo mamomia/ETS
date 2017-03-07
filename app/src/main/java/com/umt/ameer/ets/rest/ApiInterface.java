@@ -8,6 +8,8 @@ import com.umt.ameer.ets.networkmodels.ProductsResponse;
 import com.umt.ameer.ets.networkmodels.SimpleResponse;
 import com.umt.ameer.ets.networkmodels.UserInfoResponse;
 
+import org.json.JSONArray;
+
 import retrofit2.Call;
 import retrofit2.http.GET;
 import retrofit2.http.Query;
@@ -23,8 +25,9 @@ public interface ApiInterface {
     @GET("login/{email}/{password}")
     Call<UserInfoResponse> loginRequest(@Query("email") String email, @Query("password") String password);
 
-    @GET("change_status/{emp_id}/{status}/{break_content}")
+    @GET("change_status/{emp_id}/{sup_id}/{status}/{break_content}")
     Call<SimpleResponse> changeStatusRequest(@Query("emp_id") String emp_id,
+                                             @Query("sup_id") String sup_id,
                                              @Query("status") String status,
                                              @Query("break_content") String break_content);
 
@@ -35,8 +38,9 @@ public interface ApiInterface {
                                                @Query("sup_id") String sup_id,
                                                @Query("emp_radius_flag") String emp_radius_flag);
 
-    @GET("get_send_notifications/{emp_id}/{content}/{type}")
+    @GET("get_send_notifications/{emp_id}/{sup_id}/{content}/{type}")
     Call<SimpleResponse> sendNotificationRequest(@Query("emp_id") String emp_id,
+                                                 @Query("sup_id") String sup_id,
                                                  @Query("content") String content,
                                                  @Query("type") String type);
 
@@ -56,10 +60,11 @@ public interface ApiInterface {
     @GET("get_company_products/{id}")
     Call<ProductsInfoResponse> getCompaniesProductsRequest(@Query("id") String id);
 
-    @GET("add_new_order/{emp_id}/{shop_name}/{price}/{products}")
+    @GET("add_new_order/{emp_id}/{sup_id}/{shop_name}/{price}/{products}")
     Call<SimpleResponse> addNewOrderRequest(@Query("emp_id") String emp_id,
+                                            @Query("sup_id") String sup_id,
                                             @Query("shop_name") String shop_name,
                                             @Query("price") String price,
-                                            @Query("products") String products);
+                                            @Query("products") JSONArray products);
 
 }
